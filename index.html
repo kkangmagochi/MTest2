@@ -3,75 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>깡통 키우기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+    <title>캐릭터 키우기</title>
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <div class="container">
+        <!-- 헤더 섹션 -->
         <header>
-            <h1 class="title">깡통 키우기</h1>
+            <h1 id="title"><span id="character-name">깡통</span> 키우기</h1>
+            <div class="day-counter">만난지 <span id="days-count">0</span>일째</div>
         </header>
-        
-        <main>
-            <div class="character-container">
-                <img src="assets/default-character.png" alt="캐릭터" id="character-image">
-                <div id="character-status">캐릭터 상태</div>
-            </div>
-            
-            <div class="stats-container">
-                <div class="profile-pic">
-                    <img src="assets/default-profile.png" alt="프로필 사진" id="profile-image">
-                </div>
-                <div class="stat">
-                    <label>호감도</label>
-                    <div class="stat-circle" id="affection"></div>
-                </div>
-                <div class="stat">
-                    <label>허기</label>
-                    <div class="stat-circle" id="hunger"></div>
-                </div>
-                <div class="stat">
-                    <label>행복도</label>
-                    <div class="stat-circle" id="happiness"></div>
-                </div>
-                <button id="reset-stats">스탯 초기화</button>
-            </div>
-            
-            <div class="interaction-buttons">
-                <button id="feed">밥주기</button>
-                <button id="play">놀아주기</button>
-                <button id="gift">선물주기</button>
-                <button id="sleep">잠자기</button>
-            </div>
-            
-            <div class="chat-container">
-                <input type="text" id="chat-input" placeholder="대화를 입력하세요...">
-                <button id="send-chat">전송</button>
-            </div>
-        </main>
-        
-        <aside>
-            <nav>
-                <ul>
-                    <li><button id="character-management">캐릭터 관리</button></li>
-                    <li><button id="custom-management">맞춤 관리</button></li>
-                    <li><button id="api-settings">API 설정</button></li>
-                    <li><button id="image-share">이미지 공유</button></li>
-                    <li><button id="chat-log">대화로그</button></li>
-                </ul>
-            </nav>
-        </aside>
-    </div>
 
-    <div id="modal" class="hidden">
+        <!-- 메인 섹션 -->
+        <main>
+            <!-- 캐릭터 화면 -->
+            <section class="character-screen">
+                <div class="stats-display">
+                    <div class="stat">
+                        <div class="stat-icon love-icon"></div>
+                        <div class="stat-bar love-bar"></div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon hunger-icon"></div>
+                        <div class="stat-bar hunger-bar"></div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon happiness-icon"></div>
+                        <div class="stat-bar happiness-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="character-display">
+                    <div class="character-status" id="character-status">대기중...</div>
+                    <div class="character-container">
+                        <img id="character-image" src="./assets/default-character.png" alt="캐릭터">
+                    </div>
+                    <div class="character-speech-bubble" id="character-speech">
+                        안녕하세요! 저와 함께 놀아요!
+                    </div>
+                </div>
+                
+                <!-- 상호작용 버튼 -->
+                <div class="interaction-buttons">
+                    <button id="feed-btn" class="interaction-btn">
+                        <span class="btn-icon">🍔</span>
+                        <span class="btn-text">밥주기</span>
+                    </button>
+                    <button id="play-btn" class="interaction-btn">
+                        <span class="btn-icon">🎮</span>
+                        <span class="btn-text">놀아주기</span>
+                    </button>
+                    <button id="gift-btn" class="interaction-btn">
+                        <span class="btn-icon">🎁</span>
+                        <span class="btn-text">선물주기</span>
+                    </button>
+                    <button id="sleep-btn" class="interaction-btn">
+                        <span class="btn-icon">😴</span>
+                        <span class="btn-text">잠자기</span>
+                    </button>
+                </div>
+                
+                <!-- 대화 입력창 -->
+                <div class="chat-input">
+                    <input type="text" id="user-input" placeholder="대화 또는 선물 입력...">
+                    <button id="send-btn">보내기</button>
+                </div>
+            </section>
+            
+            <!-- 메뉴 섹션 -->
+            <section class="menu-section">
+                <div class="menu-tabs">
+                    <button class="tab-btn active" data-tab="character-tab">캐릭터 관리</button>
+                    <button class="tab-btn" data-tab="api-tab">API 설정</button>
+                    <button class="tab-btn" data-tab="custom-tab">맞춤 설정</button>
+                    <button class="tab-btn" data-tab="share-tab">이미지 공유</button>
+                    <button class="tab-btn" data-tab="log-tab">대화 로그</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- 캐릭터 관리 탭 -->
+                    <div class="tab-pane active" id="character-tab">
+                        <h2>캐릭터 관리</h2>
+                        <div class="character-management">
+                            <div class="character-list" id="character-list">
+                                <!-- 캐릭터 목록이 여기에 표시됩니다 -->
+                            </div>
+                            <div class="character-actions">
+                                <button id="add-character-btn">새 캐릭터 추가</button>
+                                <button id="edit-character-btn">캐릭터 수정</button>
+                                <button id="delete-character-btn">캐릭터 삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- API 설정 탭 -->
+                    <div class="tab-pane" id="api-tab">
+                        <h2>API 설정</h2>
+                        <div class="api-settings">
+                            <div class="api-key-section">
+                                <label for="api-key">Google Gemini API 키:</label>
+                                <input type="password" id="api-key" placeholder="API 키를 입력하세요">
+                                <button id="save-api-key">저장</button>
+                            </div>
+                            <div class="api-model-section">
+                                <p>AI 모델 선택:</p>
+                                <div class="model-options">
+                                    <label>
+                                        <input type="radio" name="ai-model" value="gemini-2-flash" checked>
+                                        Gemini 2.0 Flash
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="ai-model" value="gemini-2-pro">
+                                        Gemini 2.0 Pro
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="api-test-section">
+                                <p>API 연결 상태: <span id="api-status">미연결</span></p>
+                                <button id="test-api">연결 테스트</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 맞춤 설정 탭 -->
+                    <div class="tab-pane" id="custom-tab">
+                        <h2>맞춤 설정</h2>
+                        <div class="custom-tabs">
+                            <button class="custom-tab-btn active" data-tab="custom-dialog">맞춤 대화</button>
+                            <button class="custom-tab-btn" data-tab="custom-gift">맞춤 선물</button>
+                        </div>
+                        
+                        <div class="custom-tab-content">
+                            <!-- 맞춤 대화 설정 -->
+                            <div class="custom-tab-pane active" id="custom-dialog">
+                                <div class="custom-dialog-list" id="custom-dialog-list">
+                                    <!-- 맞춤 대화 목록이 여기에 표시됩니다 -->
+                                </div>
+                                <div class="custom-dialog-input">
+                                    <input type="text" id="new-dialog" placeholder="새 대화 입력...">
+                                    <button id="add-dialog">추가</button>
+                                    <button id="generate-dialog">AI 생성</button>
+                                </div>
+                            </div>
+                            
+                            <!-- 맞춤 선물 설정 -->
+                            <div class="custom-tab-pane" id="custom-gift">
+                                <div class="custom-gift-list" id="custom-gift-list">
+                                    <!-- 맞춤 선물 목록이 여기에 표시됩니다 -->
+                                </div>
+                                <div class="custom-gift-input">
+                                    <input type="text" id="new-gift" placeholder="새 선물 입력...">
+                                    <button id="add-gift">추가</button>
+                                    <button id="generate-gift">AI 생성</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 이미지 공유 탭 -->
+                    <div class="tab-pane" id="share-tab">
+                        <h2>이미지 공유</h2>
+                        <div class="share-preview">
+                            <div id="share-image-preview">
+                                <!-- 이미지 미리보기가 여기에 표시됩니다 -->
+                            </div>
+                        </div>
+                        <div class="share-controls">
+                            <button id="capture-btn">현재 화면 캡처</button>
+                            <button id="download-btn" disabled>이미지 다운로드</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 대화 로그 탭 -->
+                    <div class="tab-pane" id="log-tab">
+                        <h2>대화 로그</h2>
+                        <div class="conversation-log" id="conversation-log">
+                            <!-- 대화 로그가 여기에 표시됩니다 -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- 모달 (캐릭터 추가/수정용) -->
+    <div class="modal" id="character-modal">
         <div class="modal-content">
-            <h2 id="modal-title"></h2>
-            <div id="modal-body"></div>
-            <button id="modal-close">닫기</button>
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">새 캐릭터 추가</h2>
+            <div class="character-form">
+                <div class="form-group">
+                    <label for="character-name-input">캐릭터 이름:</label>
+                    <input type="text" id="character-name-input" placeholder="이름 입력...">
+                </div>
+                <div class="form-group">
+                    <label for="character-personality">캐릭터 성격:</label>
+                    <textarea id="character-personality" placeholder="캐릭터의 성격을 입력하세요..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="character-world">캐릭터 세계관:</label>
+                    <textarea id="character-world" placeholder="캐릭터의 세계관을 입력하세요..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="character-speech-style">말투:</label>
+                    <textarea id="character-speech-style" placeholder="캐릭터의 말투를 입력하세요..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="character-image-upload">캐릭터 이미지:</label>
+                    <input type="file" id="character-image-upload" accept="image/*">
+                    <div class="image-preview" id="character-image-preview"></div>
+                </div>
+                <div class="form-group">
+                    <label for="character-profile-upload">프로필 이미지 (선택사항):</label>
+                    <input type="file" id="character-profile-upload" accept="image/*">
+                    <div class="image-preview" id="profile-image-preview"></div>
+                </div>
+                <div class="form-actions">
+                    <button id="save-character">저장</button>
+                    <button id="cancel-character">취소</button>
+                </div>
+            </div>
         </div>
     </div>
-
-    <script src="js/main.js" type="module"></script>
+    
+    <!-- JavaScript 파일 연결 -->
+    <script src="./main.js" type="module"></script>
 </body>
 </html>
