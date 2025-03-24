@@ -14,6 +14,8 @@
   --hunger-color: #99cc99; /* 허기 색상 */
   --happiness-color: #ffcc66; /* 행복도 색상 */
   --shadow-color: rgba(0, 0, 0, 0.1); /* 그림자 색상 */
+  --room-wall-color: #fff8f8; /* 방 벽 색상 */
+  --room-floor-color: #ffe0e0; /* 방 바닥 색상 */
 }
 
 * {
@@ -77,83 +79,355 @@ h1 {
 main {
   padding: 20px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 20px;
 }
 
-/* 기본 메시지 스타일 */
-.message {
+/* 캐릭터 화면 스타일 */
+.character-screen {
   background-color: #fff;
-  padding: 15px 20px;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 3px 10px var(--shadow-color);
+  border: 3px solid var(--accent-color);
+  position: relative;
+  flex: 1;
+}
+
+/* 스탯 및 프로필 영역 */
+.stats-profile-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: var(--background-color);
+  border-radius: 10px;
+  border: 2px dashed var(--border-color);
+}
+
+/* 프로필 액자 */
+.profile-frame {
+  width: 80px;
+  height: 80px;
+  border: 3px solid var(--accent-color);
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--background-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 
+    inset 0 0 0 3px #fff,
+    inset 0 0 0 5px var(--accent-color);
+  margin-left: 10px;
+}
+
+.profile-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* 원형 스탯 디스플레이 */
+.stats-display {
+  display: flex;
+  gap: 15px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-icon {
+  font-size: 0.7rem;
+  color: var(--text-color);
+}
+
+.stat-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.stat-circle::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
+  border-radius: 50%;
+  background-color: white;
+  z-index: 1;
+}
+
+.stat-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 100%, 0 100%, 0 0, 50% 0);
+  transition: transform 0.5s ease;
+  transform: rotate(0deg);
+  z-index: 0;
+}
+
+.love-fill {
+  background-color: var(--love-color);
+}
+
+.hunger-fill {
+  background-color: var(--hunger-color);
+}
+
+.happiness-fill {
+  background-color: var(--happiness-color);
+}
+
+.stat-value {
+  position: relative;
+  z-index: 2;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.stats-reset {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-family: 'Jua', sans-serif;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.stats-reset:hover {
+  background-color: var(--primary-color);
+}
+
+/* 캐릭터 방 디자인 */
+.character-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+}
+
+.character-status {
+  font-size: 0.9rem;
+  color: var(--light-text);
+  background-color: var(--background-color);
+  padding: 3px 10px;
+  border-radius: 15px;
+  display: inline-block;
+}
+
+.character-room {
+  width: 100%;
+  height: 250px;
+  border: 3px solid var(--accent-color);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 5px 10px var(--shadow-color);
+}
+
+.room-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--room-wall-color) 70%, var(--room-floor-color) 70%);
+}
+
+.room-decor {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 20%, var(--primary-color) 2px, transparent 2px),
+    radial-gradient(circle at 80% 40%, var(--secondary-color) 2px, transparent 2px),
+    radial-gradient(circle at 40% 30%, var(--accent-color) 2px, transparent 2px);
+}
+
+.character-container {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  left: 50%;
+  top: 60%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5;
+}
+
+#character-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+#character-image:hover {
+  transform: scale(1.05);
+}
+
+.character-speech-bubble {
+  background-color: #fff;
+  padding: 10px 15px;
   border-radius: 15px;
   border: 2px solid var(--accent-color);
   box-shadow: 2px 2px 0 var(--shadow-color);
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-/* 캐릭터 업로드 안내 메시지 */
-.upload-message {
+  max-width: 90%;
   position: relative;
-  animation: pulse 2s ease infinite;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.upload-message::before {
-  content: "";
+.character-speech-bubble::before {
+  content: '';
   position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  background: repeating-linear-gradient(
-    45deg,
-    var(--primary-color),
-    var(--primary-color) 5px,
-    var(--accent-color) 5px,
-    var(--accent-color) 10px
-  );
-  z-index: -1;
-  border-radius: 19px;
+  top: -10px;
+  left: calc(50% - 10px);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--accent-color);
 }
 
-/* 버튼 스타일 */
-.btn {
-  padding: 10px 15px;
-  background-color: var(--primary-color);
-  color: var(--text-color);
+.character-speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: calc(50% - 7px);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #fff;
+}
+
+/* 상호작용 버튼 (2x2 그리드) */
+.interaction-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 10px;
+  margin: 20px 0;
+}
+
+.interaction-btn {
+  padding: 12px 10px;
   border: none;
   border-radius: 8px;
+  background-color: var(--primary-color);
+  color: var(--text-color);
   cursor: pointer;
   font-family: 'Jua', sans-serif;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  text-align: center;
   transition: all 0.2s ease;
   box-shadow: 0 3px 0 var(--accent-color);
-  display: inline-block;
-  margin: 10px 0;
 }
 
-.btn:hover {
+.interaction-btn:hover {
   background-color: var(--button-hover);
   transform: translateY(-2px);
   box-shadow: 0 5px 0 var(--accent-color);
 }
 
-.btn:active {
+.interaction-btn:active {
   transform: translateY(1px);
   box-shadow: 0 2px 0 var(--accent-color);
 }
 
-/* 경고 메시지 스타일 */
-.warning-message {
-  background-color: #fff8e1;
-  border-color: #ffecb3;
-  color: #ff9800;
-  font-weight: bold;
-  display: none;
+/* 대화 입력창 */
+.chat-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
 }
 
-/* 모달 스타일 */
+#user-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 20px;
+  font-family: 'Jua', sans-serif;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+#user-input:focus {
+  border-color: var(--accent-color);
+}
+
+#send-btn {
+  padding: 10px 20px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'Jua', sans-serif;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+#send-btn:hover {
+  background-color: var(--primary-color);
+}
+
+/* 세로 메뉴 시스템 */
+.menu-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 150px;
+}
+
+.menu-button {
+  padding: 12px 15px;
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  text-align: center;
+  font-family: 'Jua', sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 5px var(--shadow-color);
+}
+
+.menu-button:hover {
+  background-color: var(--accent-color);
+  transform: translateX(-5px);
+}
+
+/* 팝업 모달 스타일 */
 .modal {
   display: none;
   position: fixed;
@@ -171,18 +445,78 @@ main {
   margin: 10% auto;
   padding: 20px;
   border-radius: 10px;
-  max-width: 500px;
+  max-width: 600px;
   box-shadow: 0 5px 15px var(--shadow-color);
   position: relative;
+  border: 3px solid var(--accent-color);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px dotted var(--accent-color);
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  color: var(--text-color);
 }
 
 .close-modal {
-  position: absolute;
-  right: 15px;
-  top: 10px;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   color: var(--light-text);
   cursor: pointer;
+  background: none;
+  border: none;
+  line-height: 1;
+}
+
+.close-modal:hover {
+  color: var(--accent-color);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+  }
+  
+  .menu-sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+  
+  .menu-button {
+    min-width: 120px;
+    white-space: nowrap;
+  }
+
+  .stats-profile-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .stats-display {
+    justify-content: center;
+  }
+  
+  .profile-frame {
+    margin-left: 0;
+  }
+  
+  .character-room {
+    height: 200px;
+  }
+  
+  .modal-content {
+    margin: 15% auto;
+    width: 90%;
+  }
 }
 
 /* 애니메이션 효과 */
@@ -213,69 +547,4 @@ main {
 
 .shake {
   animation: shake 0.5s ease;
-}
-
-/* 좌측 메뉴 버튼 강조 효과 */
-.menu-highlight {
-  position: relative;
-}
-
-.menu-highlight::after {
-  content: "←";
-  position: absolute;
-  left: -25px;
-  color: var(--accent-color);
-  font-size: 1.5rem;
-  animation: bounce 0.5s ease infinite;
-}
-
-/* 복사 버튼 스타일 */
-.copy-btn {
-  background-color: var(--secondary-color);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
-  margin-left: 10px;
-  cursor: pointer;
-  font-family: 'Jua', sans-serif;
-  transition: background-color 0.2s ease;
-}
-
-.copy-btn:hover {
-  background-color: var(--accent-color);
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .container {
-    padding: 10px;
-  }
-  
-  header {
-    padding: 10px;
-  }
-  
-  h1 {
-    font-size: 1.8rem;
-  }
-  
-  main {
-    padding: 10px;
-  }
-  
-  .message {
-    font-size: 1rem;
-    padding: 12px 15px;
-  }
-  
-  .btn {
-    padding: 8px 12px;
-    font-size: 0.9rem;
-  }
-  
-  .modal-content {
-    margin: 20% auto;
-    max-width: 90%;
-  }
 }
