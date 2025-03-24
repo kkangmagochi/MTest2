@@ -5,505 +5,260 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>깡통 키우기</title>
     <link rel="stylesheet" href="./style.css">
-    <style>
-        /* 기본 스타일 */
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        /* 캐릭터 컨테이너 - 방 형태로 디자인 */
-        .character-container {
-            width: 100%;
-            max-width: 500px;
-            height: 400px;
-            background-color: #f0e6d8;
-            border: 8px solid #8b7355;
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        }
-        
-        .character-room {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(to bottom, #a7cfdf 0%, #a7cfdf 60%, #b19a7c 60%, #b19a7c 100%);
-        }
-        
-        .character-image {
-            max-width: 60%;
-            max-height: 60%;
-            position: absolute;
-            bottom: 20%;
-            transition: transform 0.3s ease;
-        }
-        
-        .character-image:hover {
-            transform: scale(1.05);
-        }
-        
-        /* 스탯 표시 - 원형 인디케이터 */
-        .stats-container {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        
-        .stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0 10px;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        .stat-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: #e0e0e0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-fill {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #6ab04c;
-            transition: height 0.3s ease;
-        }
-        
-        .reset-stats {
-            padding: 5px 10px;
-            background-color: #f8a5c2;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .reset-stats:hover {
-            background-color: #f78fb3;
-        }
-        
-        /* 상호작용 버튼 - 이모티콘 제거 및 레이아웃 변경 */
-        .interaction-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-gap: 10px;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .interaction-button {
-            padding: 12px;
-            border: none;
-            border-radius: 15px;
-            background-color: #95dada;
-            cursor: pointer;
-            font-size: 16px;
-            font-family: 'Comic Sans MS', cursive;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-        
-        .interaction-button:hover {
-            transform: translateY(-3px);
-            background-color: #7fbcbc;
-        }
-        
-        /* 대화창 */
-        .chat-container {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        
-        .chat-output {
-            width: 100%;
-            min-height: 100px;
-            background-color: white;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .chat-input {
-            width: 100%;
-            display: flex;
-        }
-        
-        .chat-input input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px 0 0 10px;
-        }
-        
-        .chat-input button {
-            padding: 10px 15px;
-            background-color: #95dada;
-            border: none;
-            border-radius: 0 10px 10px 0;
-            cursor: pointer;
-        }
-        
-        /* 메뉴 - 팝업창 형태로 변경 */
-        .menu-container {
-            position: fixed;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 100;
-        }
-        
-        .menu-button {
-            padding: 10px;
-            background-color: #f8a5c2;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .menu-button:hover {
-            background-color: #f78fb3;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 15px;
-            max-width: 80%;
-            max-height: 80%;
-            overflow-y: auto;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .modal-title {
-            font-size: 20px;
-            font-weight: bold;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        /* 프로필 이미지 */
-        .profile-container {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 80px;
-            height: 80px;
-            border: 4px solid #8b7355;
-            border-radius: 10px;
-            overflow: hidden;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .profile-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        /* 캐릭터 상태 및 날짜 표시 */
-        .status-container {
-            margin-top: 10px;
-            text-align: center;
-            font-size: 14px;
-            background-color: #ffeaa7;
-            padding: 5px 10px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1 id="title">깡통 키우기</h1>
-        </header>
-        
+        <!-- 메인 캐릭터 영역 -->
         <div class="character-container">
             <div class="character-room">
-                <img src="" alt="캐릭터" class="character-image" id="character-image">
-                <div class="profile-container">
-                    <img src="" alt="프로필" class="profile-image" id="profile-image">
+                <!-- 캐릭터 이미지가 방 안에 배치되는 공간 -->
+                <div id="character-image-container" class="character-image-container">
+                    <img id="character-image" src="" alt="캐릭터" class="hidden">
                 </div>
             </div>
-        </div>
-        
-        <div class="stats-container">
-            <div class="stat">
-                <span class="stat-label">호감도</span>
-                <div class="stat-circle">
-                    <div class="stat-fill" id="likability-stat" style="height: 0%;"></div>
+            
+            <!-- 상태 정보 영역 -->
+            <div class="status-container">
+                <!-- 프로필 이미지 액자 (스탯창 옆에 별도 표시) -->
+                <div class="profile-frame">
+                    <img id="profile-image" src="" alt="프로필" class="hidden">
+                </div>
+                
+                <!-- 스탯 표시 영역 (원형으로 변경) -->
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-circle" id="affection-stat">
+                            <span class="stat-label">호감도</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-circle" id="hunger-stat">
+                            <span class="stat-label">허기</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-circle" id="happiness-stat">
+                            <span class="stat-label">행복도</span>
+                        </div>
+                    </div>
+                    <button id="reset-stats" class="reset-button">스탯 초기화</button>
+                </div>
+                
+                <!-- 만난지 n일째 표시 -->
+                <div class="days-counter">
+                    <span id="days-count">만난지 0일째</span>
+                </div>
+                
+                <!-- 캐릭터 상태 표시 -->
+                <div class="character-status">
+                    <span id="status-text">대기중...</span>
                 </div>
             </div>
-            <div class="stat">
-                <span class="stat-label">허기</span>
-                <div class="stat-circle">
-                    <div class="stat-fill" id="hunger-stat" style="height: 0%;"></div>
+            
+            <!-- 대화창 영역 -->
+            <div class="dialogue-container">
+                <div id="dialogue-text" class="dialogue-text">
+                    안녕하세요! 저와 함께 놀아요!
                 </div>
             </div>
-            <div class="stat">
-                <span class="stat-label">행복도</span>
-                <div class="stat-circle">
-                    <div class="stat-fill" id="happiness-stat" style="height: 0%;"></div>
+            
+            <!-- 상호작용 버튼 영역 (2x2 배열로 변경) -->
+            <div class="interaction-buttons">
+                <div class="button-row">
+                    <button id="feed-button" class="interaction-button">밥주기</button>
+                    <button id="play-button" class="interaction-button">놀아주기</button>
+                </div>
+                <div class="button-row">
+                    <button id="gift-button" class="interaction-button">선물주기</button>
+                    <button id="sleep-button" class="interaction-button">잠자기</button>
                 </div>
             </div>
-            <button class="reset-stats" id="reset-stats">스탯 초기화</button>
-        </div>
-        
-        <div class="status-container">
-            <div id="character-status">캐릭터 상태: 대기중...</div>
-            <div id="days-counter">만난지 0일째</div>
-        </div>
-        
-        <div class="interaction-buttons">
-            <button class="interaction-button" id="feed-button">밥주기</button>
-            <button class="interaction-button" id="play-button">놀아주기</button>
-            <button class="interaction-button" id="gift-button">선물주기</button>
-            <button class="interaction-button" id="sleep-button">잠자기</button>
-        </div>
-        
-        <div class="chat-container">
-            <div class="chat-output" id="chat-output">
-                안녕하세요! 저와 함께 놀아요!
-            </div>
-            <div class="chat-input">
-                <input type="text" id="chat-input-field" placeholder="대화나 선물을 입력하세요...">
+            
+            <!-- 대화 입력창 -->
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="메시지를 입력하세요...">
                 <button id="send-button">보내기</button>
             </div>
         </div>
-    </div>
-    
-    <!-- 메뉴 버튼 -->
-    <div class="menu-container">
-        <button class="menu-button" id="character-management-button">캐릭터 관리</button>
-        <button class="menu-button" id="api-settings-button">API 설정</button>
-        <button class="menu-button" id="custom-settings-button">맞춤 설정</button>
-        <button class="menu-button" id="image-share-button">이미지 공유</button>
-        <button class="menu-button" id="chat-log-button">대화 로그</button>
-    </div>
-    
-    <!-- 캐릭터 관리 모달 -->
-    <div class="modal" id="character-management-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">캐릭터 관리</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div>
-                <button id="add-character-button">새 캐릭터 추가</button>
-                <button id="edit-character-button">캐릭터 수정</button>
-                <button id="delete-character-button">캐릭터 삭제</button>
-            </div>
-            
-            <!-- 새 캐릭터 추가 폼 -->
-            <div id="add-character-form" style="display: none;">
-                <h3>새 캐릭터 추가</h3>
-                <div>
-                    <label for="character-name">캐릭터 이름:</label>
-                    <input type="text" id="character-name">
-                </div>
-                <div>
-                    <label for="character-personality">캐릭터 성격:</label>
-                    <input type="text" id="character-personality">
-                </div>
-                <div>
-                    <label for="character-world">캐릭터 세계관:</label>
-                    <input type="text" id="character-world">
-                </div>
-                <div>
-                    <label for="character-speech">말투:</label>
-                    <input type="text" id="character-speech">
-                </div>
-                <div>
-                    <label for="character-image-upload">캐릭터 이미지:</label>
-                    <input type="file" id="character-image-upload">
-                </div>
-                <div>
-                    <label for="profile-image-upload">프로필 이미지 (선택사항):</label>
-                    <input type="file" id="profile-image-upload">
-                </div>
-                <button id="save-character">저장</button>
-                <button id="cancel-add-character">취소</button>
-            </div>
+        
+        <!-- 세로 메뉴 영역 (우측에 배치) -->
+        <div class="menu-container">
+            <button class="menu-button" id="character-management-btn">캐릭터 관리</button>
+            <button class="menu-button" id="api-settings-btn">API 설정</button>
+            <button class="menu-button" id="custom-settings-btn">맞춤 설정</button>
+            <button class="menu-button" id="image-share-btn">이미지 공유</button>
+            <button class="menu-button" id="dialogue-log-btn">대화 로그</button>
         </div>
     </div>
     
-    <!-- API 설정 모달 -->
-    <div class="modal" id="api-settings-modal">
+    <!-- 팝업 모달 영역 -->
+    <!-- 캐릭터 관리 팝업 -->
+    <div id="character-management-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">API 설정</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div>
-                <div>
-                    <label for="api-key">Google Gemini API 키:</label>
-                    <input type="password" id="api-key">
-                    <button id="save-api-key">저장</button>
-                </div>
-                <div>
+            <h2>캐릭터 관리</h2>
+            <button class="modal-button" id="add-character-btn">새 캐릭터 추가</button>
+            <button class="modal-button" id="edit-character-btn">캐릭터 수정</button>
+            <button class="modal-button" id="delete-character-btn">캐릭터 삭제</button>
+            <button class="close-modal">닫기</button>
+        </div>
+    </div>
+    
+    <!-- API 설정 팝업 -->
+    <div id="api-settings-modal" class="modal">
+        <div class="modal-content">
+            <h2>API 설정</h2>
+            <div class="api-settings-form">
+                <label for="api-key">Google Gemini API 키:</label>
+                <input type="text" id="api-key" placeholder="API 키를 입력하세요">
+                <button id="save-api-key">저장</button>
+                
+                <div class="model-selection">
                     <label>AI 모델 선택:</label>
-                    <div>
-                        <input type="radio" id="gemini-flash" name="model" value="flash">
+                    <div class="radio-group">
+                        <input type="radio" id="gemini-flash" name="model" value="flash" checked>
                         <label for="gemini-flash">Gemini 2.0 Flash</label>
-                    </div>
-                    <div>
                         <input type="radio" id="gemini-pro" name="model" value="pro">
                         <label for="gemini-pro">Gemini 2.0 Pro</label>
                     </div>
                 </div>
-                <div>
-                    <div>API 연결 상태: <span id="api-status">미연결</span></div>
-                    <button id="test-api">연결 테스트</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 맞춤 설정 모달 -->
-    <div class="modal" id="custom-settings-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">맞춤 설정</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div>
-                <h3>맞춤 대화</h3>
-                <div id="custom-dialog-list"></div>
-                <div>
-                    <input type="text" id="custom-dialog-input" placeholder="맞춤 대화 입력...">
-                    <button id="add-custom-dialog">추가</button>
-                    <button id="generate-custom-dialog">AI 생성</button>
-                </div>
                 
-                <h3>맞춤 선물</h3>
-                <div id="custom-gift-list"></div>
-                <div>
-                    <input type="text" id="custom-gift-input" placeholder="맞춤 선물 입력...">
-                    <button id="add-custom-gift">추가</button>
-                    <button id="generate-custom-gift">AI 생성</button>
+                <div class="api-status">
+                    <label>API 연결 상태:</label>
+                    <span id="connection-status">미연결</span>
+                    <button id="test-connection">연결 테스트</button>
                 </div>
             </div>
+            <button class="close-modal">닫기</button>
         </div>
     </div>
     
-    <!-- 이미지 공유 모달 -->
-    <div class="modal" id="image-share-modal">
+    <!-- 맞춤 설정 팝업 -->
+    <div id="custom-settings-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">이미지 공유</h2>
-                <button class="close-modal">&times;</button>
+            <h2>맞춤 설정</h2>
+            
+            <div class="custom-dialogue-section">
+                <h3>맞춤 대화</h3>
+                <div id="custom-dialogue-list" class="custom-list"></div>
+                <div class="add-custom-item">
+                    <input type="text" id="new-dialogue" placeholder="새 대화 입력">
+                    <button id="add-dialogue">추가</button>
+                    <button id="generate-dialogue">AI 생성</button>
+                </div>
             </div>
-            <div>
-                <button id="capture-screen">현재 화면 캡처</button>
-                <button id="download-image">이미지 다운로드</button>
-                <div id="capture-preview" style="margin-top: 20px; text-align: center;"></div>
+            
+            <div class="custom-gift-section">
+                <h3>맞춤 선물</h3>
+                <div id="custom-gift-list" class="custom-list"></div>
+                <div class="add-custom-item">
+                    <input type="text" id="new-gift" placeholder="새 선물 입력">
+                    <button id="add-gift">추가</button>
+                    <button id="generate-gift">AI 생성</button>
+                </div>
             </div>
+            
+            <button class="close-modal">닫기</button>
         </div>
     </div>
     
-    <!-- 대화 로그 모달 -->
-    <div class="modal" id="chat-log-modal">
+    <!-- 이미지 공유 팝업 -->
+    <div id="image-share-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">대화 로그</h2>
-                <button class="close-modal">&times;</button>
+            <h2>이미지 공유</h2>
+            <button id="capture-screen">현재 화면 캡처</button>
+            <button id="download-image">이미지 다운로드</button>
+            <div id="preview-container" class="preview-container">
+                <img id="preview-image" class="hidden">
             </div>
-            <div id="chat-log-container">
-                <!-- 대화 로그 항목들이 여기에 추가됨 -->
-            </div>
-            <p>마음에 드는 대화는 '복사' 버튼을 클릭해 클립보드에 복사하세요. 계속 보고 싶은 대사는 설정의 '맞춤 대화'에 추가해주세요.</p>
+            <button class="close-modal">닫기</button>
         </div>
     </div>
     
-    <!-- 캐릭터 삭제 확인 모달 -->
-    <div class="modal" id="delete-confirmation-modal">
+    <!-- 대화 로그 팝업 -->
+    <div id="dialogue-log-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">확인</h2>
-                <button class="close-modal">&times;</button>
+            <h2>대화 로그</h2>
+            <div id="dialogue-log-list" class="dialogue-log-list">
+                <!-- 대화 로그 항목들이 여기에 추가됩니다 -->
             </div>
-            <p>정말로 선택한 캐릭터를 삭제하시겠습니까?</p>
+            <button class="close-modal">닫기</button>
+        </div>
+    </div>
+    
+    <!-- 새 캐릭터 추가 팝업 -->
+    <div id="add-character-modal" class="modal">
+        <div class="modal-content">
+            <h2>새 캐릭터 추가</h2>
+            <form id="add-character-form">
+                <div class="form-group">
+                    <label for="character-name">캐릭터 이름:</label>
+                    <input type="text" id="character-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="character-personality">캐릭터 성격:</label>
+                    <textarea id="character-personality" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="character-background">캐릭터 세계관:</label>
+                    <textarea id="character-background" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="character-speech">말투:</label>
+                    <textarea id="character-speech" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="character-image-upload">캐릭터 이미지:</label>
+                    <input type="file" id="character-image-upload" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label for="profile-image-upload">프로필 이미지 (선택사항):</label>
+                    <input type="file" id="profile-image-upload" accept="image/*">
+                </div>
+                <div class="form-buttons">
+                    <button type="submit">저장</button>
+                    <button type="button" class="cancel-button">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 캐릭터 업로드 안내 팝업 -->
+    <div id="upload-guide-modal" class="modal">
+        <div class="modal-content">
+            <h2>안녕하세요!</h2>
+            <p>캐릭터를 업로드해주세요!</p>
+            <p>좌측 하단의 캐릭터 업로드 버튼을 눌러주세요.</p>
+            <button id="upload-guide-close" class="close-modal">확인</button>
+        </div>
+    </div>
+    
+    <!-- 캐릭터 삭제 확인 팝업 -->
+    <div id="delete-confirm-modal" class="modal">
+        <div class="modal-content">
+            <h2>정말로 선택한 캐릭터를 삭제하시겠습니까?</h2>
             <p>이 작업은 되돌릴 수 없습니다.</p>
-            <div>
+            <div class="confirm-buttons">
                 <button id="confirm-delete">삭제</button>
                 <button id="cancel-delete">취소</button>
             </div>
         </div>
     </div>
     
-    <script src="./main.js" type="module"></script>
+    <!-- 복사 안내 팝업 -->
+    <div id="copy-guide-modal" class="modal">
+        <div class="modal-content">
+            <p>마음에 드는 대화는 '복사' 버튼을 클릭해 클립보드에 복사하세요. 계속 보고 싶은 대사는 설정의 '맞춤 대화'에 추가해주세요.</p>
+            <button class="close-modal">확인</button>
+        </div>
+    </div>
+
+    <!-- 자바스크립트 파일 연결 -->
+    <script src="./main.js"></script>
+    <script src="./character.js"></script>
+    <script src="./interaction.js"></script>
+    <script src="./ai.js"></script>
+    <script src="./storage.js"></script>
+    <script src="./ui.js"></script>
+    <script src="./utils.js"></script>
 </body>
 </html>
