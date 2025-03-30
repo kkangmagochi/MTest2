@@ -3,117 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>캐릭터 키우기</title>
+    <title>깡통 키우기</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <!-- 헤더 섹션 -->
-        <header>
-            <h1 id="title"><span id="character-name">깡통</span> 키우기</h1>
-            <div class="day-counter">만난지 <span id="days-count">0</span>일째</div>
-        </header>
-
-        <!-- 메인 컨텐츠 영역 -->
-        <main class="main-content">
-            <!-- 캐릭터 화면 섹션 -->
-            <section class="main-frame">
-                <!-- 스탯 컨테이너 -->
-                <div class="stats-container">
-                    <div class="profile-frame">
-                        <img id="profile-image" src="" alt="프로필">
-                    </div>
-                    <div class="stats-wrapper">
-                        <div class="stat">
-                            <span>호감도</span>
-                            <div class="stat-circle">
-                                <div class="stat-fill" id="affection-fill"></div>
-                            </div>
-                            <span id="affection-value">50</span>
-                        </div>
-                        <div class="stat">
-                            <span>허기</span>
-                            <div class="stat-circle">
-                                <div class="stat-fill" id="hunger-fill"></div>
-                            </div>
-                            <span id="hunger-value">50</span>
-                        </div>
-                        <div class="stat">
-                            <span>행복도</span>
-                            <div class="stat-circle">
-                                <div class="stat-fill" id="happiness-fill"></div>
-                            </div>
-                            <span id="happiness-value">50</span>
-                        </div>
-                    </div>
-                    <button id="stats-reset-btn" class="small-button">스탯 초기화</button>
+        <div class="tamagotchi-frame">
+            <div class="tamagotchi-header">
+                <h1 id="game-title">깡통 키우기</h1>
+                <div class="day-counter">
+                    <span>만난지 </span><span id="days-count">0</span><span>일째</span>
                 </div>
-                
-                <!-- 캐릭터 디스플레이 -->
-                <div class="character-display">
-                    <div class="character-room">
-                        <div id="character-container" class="hide">
-                            <img id="character-image" src="" alt="캐릭터">
-                            <div class="character-status">
-                                <span id="character-status-text">기본 상태</span>
-                            </div>
-                        </div>
-                        
-                        <div id="no-character" class="no-character-message show">
-                            <p>안녕하세요!</p>
-                            <p>캐릭터를 업로드해주세요!</p>
-                            <p>좌측 메뉴의 캐릭터 업로드 버튼을 눌러주세요.</p>
-                        </div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat">
+                    <span>호감도</span>
+                    <div class="progress-bar">
+                        <div class="progress" id="affection-bar"></div>
                     </div>
-                    
+                    <span id="affection-value">50</span>
+                </div>
+                <div class="stat">
+                    <span>허기</span>
+                    <div class="progress-bar">
+                        <div class="progress" id="hunger-bar"></div>
+                    </div>
+                    <span id="hunger-value">50</span>
+                </div>
+                <div class="stat">
+                    <span>행복도</span>
+                    <div class="progress-bar">
+                        <div class="progress" id="happiness-bar"></div>
+                    </div>
+                    <span id="happiness-value">50</span>
+                </div>
+                <button id="stats-reset-btn" class="small-button">스탯 초기화</button>
+            </div>
+            
+            <div class="character-display">
+                <div id="character-container" class="hide">
+                    <img id="character-image" src="" alt="캐릭터">
                     <div id="speech-bubble" class="speech-bubble hide">
                         <span id="character-speech"></span>
                     </div>
-                </div>
-                
-                <!-- 상호작용 버튼 -->
-                <div class="action-buttons">
-                    <div class="action-row">
-                        <button id="feed-button" class="action-button">밥주기</button>
-                        <button id="play-button" class="action-button">놀아주기</button>
+                    <div class="character-status">
+                        <span id="character-status-text">기본 상태</span>
                     </div>
-                    <div class="action-row">
-                        <button id="gift-button" class="action-button">선물주기</button>
-                        <button id="sleep-button" class="action-button">잠자기</button>
+                    <div class="profile-frame">
+                        <img id="profile-image" src="" alt="프로필">
                     </div>
                 </div>
                 
-                <!-- 선물 입력창 -->
-                <div class="custom-gift-container">
-                    <input type="text" id="custom-gift-input" placeholder="선물 이름 또는 대화 입력">
-                    <button id="give-gift-btn" class="small-button">보내기</button>
+                <div id="no-character" class="no-character-message show">
+                    <p>안녕하세요!</p>
+                    <p>캐릭터를 업로드해주세요!</p>
+                    <p>좌측 하단의 캐릭터 업로드 버튼을 눌러주세요.</p>
                 </div>
-                
-                <!-- 좋아하는 선물 목록 -->
-                <div class="favorite-gifts-container">
-                    <h3>좋아하는 선물</h3>
-                    <div id="favorite-gifts-list" class="favorite-gifts-list"></div>
-                </div>
-                
-                <div class="help-text">
-                    마음에 드는 대화는 '복사' 버튼을 클릭해 클립보드에 복사하세요. 계속 보고 싶은 대사는 설정의 '맞춤 대화'에 추가해주세요.
-                </div>
-            </section>
-            
-            <!-- 사이드 메뉴 -->
-            <div class="side-controls">
-                <button id="character-upload-btn" class="control-button">캐릭터 업로드</button>
-                <button id="settings-btn" class="control-button">설정</button>
-                <button id="api-connection-btn" class="control-button">API 연결</button>
-                <button id="profile-btn" class="control-button">프로필 설정</button>
-                <button id="share-btn" class="control-button">이미지 공유</button>
-                <button id="dialog-logs-btn" class="control-button">대화 로그</button>
             </div>
-        </main>
+            
+            <div class="action-buttons">
+                <button id="feed-button" class="action-button">밥주기</button>
+                <button id="play-button" class="action-button">놀아주기</button>
+                <button id="gift-button" class="action-button">선물주기</button>
+                <button id="sleep-button" class="action-button">잠자기</button>
+            </div>
+            
+            <div class="custom-gift-container">
+                <input type="text" id="custom-gift-input" placeholder="선물 이름 입력">
+                <button id="give-gift-btn" class="small-button">선물하기</button>
+            </div>
+            
+            <div class="favorite-gifts-container">
+                <h3>좋아하는 선물</h3>
+                <div id="favorite-gifts-list" class="favorite-gifts-list"></div>
+            </div>
+            
+            <div class="help-text">
+                마음에 드는 대화는 '복사' 버튼을 클릭해 클립보드에 복사하세요. 계속 보고 싶은 대사는 설정의 '맞춤 대화'에 추가해주세요.
+            </div>
+        </div>
+        
+        <div class="side-controls">
+            <button id="character-upload-btn" class="control-button">캐릭터 업로드</button>
+            <button id="settings-btn" class="control-button">설정</button>
+            <button id="api-connection-btn" class="control-button">API 연결</button>
+            <button id="profile-btn" class="control-button">프로필 설정</button>
+            <button id="share-btn" class="control-button">이미지 공유</button>
+            <button id="dialog-logs-btn" class="control-button">대화 로그</button>
+        </div>
     </div>
-    
-    <!-- 모달 창 섹션 -->
     
     <!-- 캐릭터 업로드 모달 -->
     <div id="character-modal" class="modal">
@@ -298,6 +278,11 @@
         </div>
     </div>
     
+    <!-- 알림 메시지 템플릿 -->
+    <div id="notification-template" class="notification" style="display: none;">
+        <span id="notification-message"></span>
+    </div>
+
     <!-- 설정 모달 -->
     <div id="settings-modal" class="modal">
         <div class="modal-content">
@@ -332,16 +317,16 @@
                 <input type="text" id="api-key">
             </div>
             <div class="form-group">
-                <label>모델 선택:</label>
-                <div class="radio-group">
-                    <input type="radio" id="model-flash" name="model-select" checked>
-                    <label for="model-flash">Gemini 2.0 Flash (빠르고 효율적)</label>
-                </div>
-                <div class="radio-group">
-                    <input type="radio" id="model-pro" name="model-select">
-                    <label for="model-pro">Gemini 2.0 Pro (더 강력한 성능)</label>
-                </div>
-            </div>
+  <label>모델 선택:</label>
+  <div class="radio-group">
+    <input type="radio" id="model-flash" name="model-select" checked>
+    <label for="model-flash">Gemini 2.0 Flash (빠르고 효율적)</label>
+  </div>
+  <div class="radio-group">
+    <input type="radio" id="model-pro" name="model-select">
+    <label for="model-pro">Gemini 2.0 Pro (더 강력한 성능)</label>
+  </div>
+</div>
             <button id="connect-api" class="modal-button">연결하기</button>
             <div class="form-group">
                 <label>연결 상태: <span id="connection-status">연결되지 않음</span></label>
@@ -396,38 +381,24 @@
 
     <!-- 대화 로그 모달 -->
     <div id="dialog-logs-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>대화 로그</h2>
-                <span class="close">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p class="help-text">마음에 드는 대화는 '복사' 버튼을 클릭해 클립보드에 복사하세요. 계속 보고 싶은 대사는 설정의 '맞춤 대화'에 추가해주세요.</p>
-                <div id="dialog-logs-list" class="dialog-logs-list">
-                    <!-- 여기에 로그 항목이 동적으로 추가됩니다 -->
-                </div>
-            </div>
-        </div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>대화 로그</h2>
+      <span class="close">&times;</span>
     </div>
-    
-    <!-- 알림 메시지 템플릿 -->
-    <div id="notification-template" class="notification" style="display: none;">
-        <span id="notification-message"></span>
+    <div class="modal-body">
+      <p class="help-text">마음에 드는 대화는 '복사' 버튼을 클릭해 클립보드에 복사하세요. 계속 보고 싶은 대사는 설정의 '맞춤 대화'에 추가해주세요.</p>
+      <div id="dialog-logs-list" class="dialog-logs-list">
+        <!-- 여기에 로그 항목이 동적으로 추가됩니다 -->
+      </div>
     </div>
+  </div>
+</div>
     
     <!-- 밤 효과용 오버레이 -->
     <div id="night-overlay" class="night-overlay"></div>
 
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="./main.js" type="module"></script>
-
-    <!-- 자바스크립트 파일 연결 -->
-    <script src="./main.js"></script>
-    <script src="./character.js"></script>
-    <script src="./interaction.js"></script>
-    <script src="./ai.js"></script>
-    <script src="./storage.js"></script>
-    <script src="./ui.js"></script>
-    <script src="./utils.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
