@@ -80,9 +80,6 @@
                 <div id="favorite-gifts-list" class="favorite-gifts-list"></div>
             </div>
             
-            <div class="help-text">
-                마음에 드는 대화는 '복사' 버튼을 클릭해 클립보드에 복사하세요. 계속 보고 싶은 대사는 설정의 '맞춤 대화'에 추가해주세요.
-            </div>
         </div>
         
         <div class="side-controls">
@@ -110,6 +107,10 @@
                 <label for="character-img">캐릭터 이미지</label>
                 <input type="file" id="character-img" accept="image/*">
             </div>
+            <div class="form-group">
+                    <label for="user-relation">[유저 설정]: 캐릭터가 부를 이름 혹은 관계를 입력해주세요.</label>
+                    <input type="text" id="user-relation">
+                </div>
             <div class="form-group character-type-group">
                 <label>캐릭터 타입:</label>
                 <div class="radio-group-horizontal">
@@ -141,7 +142,7 @@
                     </div>
                     <div class="form-group">
                         <label for="character-tone">말투</label>
-                        <input type="text" id="character-tone" placeholder="예: 존댓말, 반말, 귀여운 말투 등">
+                        <input type="text" id="character-tone" placeholder="특별한 말투나 습관적으로 사용하는 표현">
                     </div>
                     <div class="form-group">
                         <label for="character-lore">세계관</label>
@@ -150,10 +151,6 @@
                     <div class="form-group">
                         <label for="character-personality">성격</label>
                         <textarea id="character-personality" placeholder="캐릭터의 성격 특징"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="character-speech-style">말투 특징</label>
-                        <textarea id="character-speech-style" placeholder="특별한 말투나 습관적으로 사용하는 표현"></textarea>
                     </div>
                 </div>
             </div>
@@ -230,7 +227,7 @@
                         </div>
                         <div class="form-group">
                             <label for="edit-character-tone">말투</label>
-                            <input type="text" id="edit-character-tone" placeholder="예: 존댓말, 반말, 귀여운 말투 등">
+                            <input type="text" id="edit-character-tone" placeholder="특별한 말투나 습관적으로 사용하는 표현">
                         </div>
                         <div class="form-group">
                             <label for="edit-character-lore">세계관</label>
@@ -239,10 +236,6 @@
                         <div class="form-group">
                             <label for="edit-character-personality">성격</label>
                             <textarea id="edit-character-personality" placeholder="캐릭터의 성격 특징"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-character-speech-style">말투 특징</label>
-                            <textarea id="edit-character-speech-style" placeholder="특별한 말투나 습관적으로 사용하는 표현"></textarea>
                         </div>
                     </div>
                 </div>
@@ -324,7 +317,7 @@
   </div>
   <div class="radio-group">
     <input type="radio" id="model-pro" name="model-select">
-    <label for="model-pro">Gemini 2.0 Pro (더 강력한 성능)</label>
+    <label for="model-pro">Gemini 2.5 Pro Exp (더 강력한 성능)</label>
   </div>
 </div>
             <button id="connect-api" class="modal-button">연결하기</button>
