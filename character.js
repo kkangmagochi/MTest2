@@ -155,13 +155,13 @@ export function handleSaveCharacter() {
         profileImage: e.target.result,
         type: DOMElements.characterTypeExisting?.checked ? 'existing' : 'original',
         setting: setting || '', // setting이 없어도 빈 문자열로 처리
-        
+        // 사용자 호칭
+        userNickname: DOMElements.characterUserNicknameInput?.value?.trim() || '',
         // 상세 필드
         genre: DOMElements.characterGenreInput?.value?.trim() || '',
         tone: DOMElements.characterToneInput?.value?.trim() || '',
         lore: DOMElements.characterLoreInput?.value?.trim() || '',
         personality: DOMElements.characterPersonalityInput?.value?.trim() || '',
-        speechStyle: DOMElements.characterSpeechStyleInput?.value?.trim() || '',
         customDialog: '',
         customGift: ''
       };
@@ -213,11 +213,11 @@ function resetCharacterForm() {
   if (DOMElements.characterNameInput) DOMElements.characterNameInput.value = '';
   if (DOMElements.characterImgInput) DOMElements.characterImgInput.value = '';
   if (DOMElements.characterSettingInput) DOMElements.characterSettingInput.value = '';
+  if (DOMElements.characterUserNicknameInput) DOMElements.characterUserNicknameInput.value = '';
   if (DOMElements.characterGenreInput) DOMElements.characterGenreInput.value = '';
   if (DOMElements.characterToneInput) DOMElements.characterToneInput.value = '';
   if (DOMElements.characterLoreInput) DOMElements.characterLoreInput.value = '';
   if (DOMElements.characterPersonalityInput) DOMElements.characterPersonalityInput.value = '';
-  if (DOMElements.characterSpeechStyleInput) DOMElements.characterSpeechStyleInput.value = '';
   
   // 라디오 버튼 초기화
   if (DOMElements.characterTypeExisting) DOMElements.characterTypeExisting.checked = true;
@@ -253,6 +253,10 @@ export function handleEditCharacterSelection() {
   if (DOMElements.editCharacterSettingInput)
     DOMElements.editCharacterSettingInput.value = charToEdit.setting || '';
   
+  // 사용자 호칭 필드 채우기
+if (DOMElements.editCharacterUserNicknameInput)
+    DOMElements.editCharacterUserNicknameInput.value = charToEdit.userNickname || '';
+  
   // 캐릭터 타입 라디오 버튼 설정
   if (charToEdit.type === 'original') {
     if (DOMElements.editCharacterTypeOriginal)
@@ -274,9 +278,6 @@ export function handleEditCharacterSelection() {
   
   if (DOMElements.editCharacterPersonalityInput)
     DOMElements.editCharacterPersonalityInput.value = charToEdit.personality || '';
-  
-  if (DOMElements.editCharacterSpeechStyleInput)
-    DOMElements.editCharacterSpeechStyleInput.value = charToEdit.speechStyle || '';
   
   // 폼 표시
   DOMElements.editCharacterForm.style.display = 'block';
@@ -329,6 +330,7 @@ export function handleUpdateCharacter() {
     ...originalCharacter,
     name: name,
     setting: setting || originalCharacter.setting || '',
+    userNickname: DOMElements.editCharacterUserNicknameInput?.value?.trim() || originalCharacter.userNickname || '',
     type: DOMElements.editCharacterTypeOriginal?.checked ? 'original' : 'existing',
     
     // 상세 필드 업데이트
@@ -336,7 +338,6 @@ export function handleUpdateCharacter() {
     tone: DOMElements.editCharacterToneInput?.value?.trim() || originalCharacter.tone || '',
     lore: DOMElements.editCharacterLoreInput?.value?.trim() || originalCharacter.lore || '',
     personality: DOMElements.editCharacterPersonalityInput?.value?.trim() || originalCharacter.personality || '',
-    speechStyle: DOMElements.editCharacterSpeechStyleInput?.value?.trim() || originalCharacter.speechStyle || ''
   };
   
   // 새 이미지 파일 선택 여부 확인
