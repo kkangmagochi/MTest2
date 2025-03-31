@@ -1,479 +1,458 @@
-// main.js - 메인 기능 및 UI 처리
+// main.js - 메인 기능과 UI 관리
 
-// 전역 변수
-let currentCharacter = null;
-let apiConnected = false;
+document.addEventListener('DOMContentLoaded', function() {
+    // 전역 변수
+    let currentCharacter = null;
+    const characterList = [];
 
-// 애플리케이션 초기화
-document.addEventListener('DOMContentLoaded', () => {
-    initializeUI();
-    setupEventListeners();
-    checkApiConnection();
-});
-
-// UI 초기화
-function initializeUI() {
-    // 환영 메시지 표시
-    showMessage('안녕하세요! 캐릭터를 업로드해주세요!');
-    
-    // 저장된 캐릭터가 있는지 확인
-    const savedCharacter = localStorage.getItem('character');
-    if (savedCharacter) {
-        currentCharacter = JSON.parse(savedCharacter);
-        displayCharacter(currentCharacter);
+    // 초기화 함수
+    function init() {
+        setupEventListeners();
+        setupMenus();
+        checkLocalStorage();
     }
-    
-    // 맞춤 대화 로드
-    loadCustomDialogues();
-}
 
-// 이벤트 리스너 설정
-function setupEventListeners() {
-    // 캐릭터 업로드 버튼
-    const uploadButton = document.querySelector('.character-upload-button');
-    if (uploadButton) {
-        uploadButton.addEventListener('click', openCharacterUploadDialog);
-    }
-    
-    // 메뉴 버튼들
-    const menuButtons = document.querySelectorAll('.menu-button');
-    menuButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            const menuType = e.target.dataset.menu;
-            openMenu(menuType);
-        });
-    });
-    
-    // 팝업 닫기 버튼
-    const closeButtons = document.querySelectorAll('.close-popup');
-    closeButtons.forEach(button => {
-        button.addEventListener('click', closePopup);
-    });
-    
-    // 메시지 전송
-    const sendButton = document.getElementById('send-button');
-    const messageInput = document.getElementById('message-input');
-    
-    if (sendButton && messageInput) {
-        // 버튼 클릭으로 메시지 전송
-        sendButton.addEventListener('click', () => {
-            sendMessage();
+    // 이벤트 리스너 설정
+    function setupEventListeners() {
+        // 캐릭터 업로드 버튼 이벤트
+        const uploadBtn = document.querySelector('.character-upload-btn');
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', openCharacterUpload);
+        }
+        
+        // 메뉴 버튼 이벤트들
+        const menuButtons = document.querySelectorAll('.menu-button');
+        menuButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                openMenu(this.dataset.menu);
+            });
         });
         
-        // Enter 키로 메시지 전송
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+        // 팝업 닫기 버튼
+        document.querySelectorAll('.close-popup').forEach(btn => {
+            btn.addEventListener('click', closePopup);
         });
+        
+        // 복사 버튼
+        document.querySelectorAll('.copy-button').forEach(btn => {
+            btn.addEventListener('click', copyDialogue);
+        });
+        
+        // 삭제 확인 버튼
+        const deleteConfirmBtn = document.querySelector('.delete-confirm-btn');
+        if (deleteConfirmBtn) {
+            deleteConfirmBtn.addEventListener('click', deleteCharacter);
+        }
+    }
+    
+    // 메뉴 설정
+    function setupMenus() {
+        // 메뉴 동적 생성 및 설정
+        createMenu('aiSettings', 'API 설정', 'api-settings-content');
+        createMenu('characters', '캐릭터 관리', 'character-management-content');
+        createMenu('settings', '환경설정', 'settings-content');
+    }
+    
+    // 메뉴 생성 함수
+    function createMenu(id, title, contentId) {
+        const menuContainer = document.querySelector('.menu-container');
+        if (!menuContainer) return;
+        
+        const menuButton = document.createElement('button');
+        menuButton.classList.add('menu-button');
+        menuButton.dataset.menu = id;
+        menuButton.textContent = title;
+        menuContainer.appendChild(menuButton);
+        
+        // 해당 메뉴의 팝업 콘텐츠 생성
+        createPopup(id, title, contentId);
+    }
+    
+    // 팝업 생성 함수
+    function createPopup(id, title, contentId) {
+        const popupContainer = document.querySelector('.popup-container') || createPopupContainer();
+        
+        const popup = document.createElement('div');
+        popup.id = id + 'Popup';
+        popup.classList.add('popup');
+        popup.style.display = 'none';
+        
+        const popupHeader = document.createElement('div');
+        popupHeader.classList.add('popup-header');
+        
+        const popupTitle = document.createElement('h2');
+        popupTitle.textContent = title;
+        
+        const closeButton = document.createElement('button');
+        closeButton.classList.add('close-popup');
+        closeButton.textContent = '×';
+        closeButton.addEventListener('click', closePopup);
+        
+        const popupContent = document.createElement('div');
+        popupContent.id = contentId;
+        popupContent.classList.add('popup-content');
+        
+        popupHeader.appendChild(popupTitle);
+        popupHeader.appendChild(closeButton);
+        
+        popup.appendChild(popupHeader);
+        popup.appendChild(popupContent);
+        
+        popupContainer.appendChild(popup);
+    }
+    
+    // 팝업 컨테이너 생성
+    function createPopupContainer() {
+        const container = document.createElement('div');
+        container.classList.add('popup-container');
+        document.body.appendChild(container);
+        return container;
+    }
+    
+    // 로컬 스토리지 확인
+    function checkLocalStorage() {
+        const savedCharacters = localStorage.getItem('characters');
+        if (savedCharacters) {
+            try {
+                const parsed = JSON.parse(savedCharacters);
+                parsed.forEach(char => characterList.push(char));
+                
+                if (characterList.length > 0) {
+                    currentCharacter = characterList[0];
+                    updateCharacterDisplay();
+                }
+            } catch (e) {
+                console.error('저장된 캐릭터 정보를 불러오는데 실패했습니다.', e);
+            }
+        }
+    }
+    
+    // 메뉴 열기
+    function openMenu(menuId) {
+        const popup = document.getElementById(menuId + 'Popup');
+        if (popup) {
+            // 모든 팝업 닫기
+            document.querySelectorAll('.popup').forEach(p => {
+                p.style.display = 'none';
+            });
+            
+            // 선택된 팝업 열기
+            popup.style.display = 'block';
+            
+            // API 설정 메뉴인 경우 API 테스트 UI 초기화
+            if (menuId === 'aiSettings') {
+                initApiSettings();
+            }
+        }
+    }
+    
+    // API 설정 초기화
+    function initApiSettings() {
+        const container = document.getElementById('api-settings-content');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const apiKeyInput = document.createElement('div');
+        apiKeyInput.innerHTML = `
+            <label for="geminiApiKey">Gemini API 키:</label>
+            <input type="text" id="geminiApiKey" placeholder="API 키를 입력하세요">
+            <button id="saveApiKey">저장</button>
+        `;
+        
+        const apiTest = document.createElement('div');
+        apiTest.innerHTML = `
+            <h3>API 테스트</h3>
+            <button id="testApiConnection">연결 테스트</button>
+            <div id="apiTestResult"></div>
+        `;
+        
+        container.appendChild(apiKeyInput);
+        container.appendChild(apiTest);
+        
+        // 이벤트 리스너 추가
+        document.getElementById('saveApiKey').addEventListener('click', saveApiKey);
+        document.getElementById('testApiConnection').addEventListener('click', testApiConnection);
+    }
+    
+    // API 키 저장
+    function saveApiKey() {
+        const apiKey = document.getElementById('geminiApiKey').value.trim();
+        if (apiKey) {
+            localStorage.setItem('geminiApiKey', apiKey);
+            alert('API 키가 저장되었습니다.');
+        } else {
+            alert('유효한 API 키를 입력해주세요.');
+        }
     }
     
     // API 연결 테스트
-    const testApiButton = document.getElementById('test-api');
-    const saveApiButton = document.getElementById('save-api');
-    
-    if (testApiButton) {
-        testApiButton.addEventListener('click', testApiConnection);
+    function testApiConnection() {
+        const resultElement = document.getElementById('apiTestResult');
+        resultElement.textContent = 'API 연결 테스트 중...';
+        
+        // AI.js의 testConnection 함수 호출
+        if (typeof AI !== 'undefined' && AI.testConnection) {
+            AI.testConnection()
+                .then(result => {
+                    resultElement.textContent = '연결 성공: ' + result;
+                    resultElement.style.color = 'green';
+                })
+                .catch(error => {
+                    resultElement.textContent = '연결 실패: ' + error.message;
+                    resultElement.style.color = 'red';
+                });
+        } else {
+            resultElement.textContent = 'AI 모듈이 로드되지 않았습니다.';
+            resultElement.style.color = 'red';
+        }
     }
     
-    if (saveApiButton) {
-        saveApiButton.addEventListener('click', saveApiKey);
+    // 캐릭터 업로드 창 열기
+    function openCharacterUpload() {
+        // 파일 선택 창 열기 구현
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = handleCharacterUpload;
+        input.click();
+    }
+    
+    // 캐릭터 업로드 처리
+    function handleCharacterUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const character = {
+                id: Date.now(),
+                name: file.name.split('.')[0],
+                image: e.target.result,
+                level: 1,
+                exp: 0,
+                conversations: []
+            };
+            
+            characterList.push(character);
+            currentCharacter = character;
+            
+            // 로컬 스토리지에 저장
+            localStorage.setItem('characters', JSON.stringify(characterList));
+            
+            // 화면 업데이트
+            updateCharacterDisplay();
+        };
+        reader.readAsDataURL(file);
     }
     
     // 캐릭터 삭제
-    const deleteCharButton = document.getElementById('delete-character');
-    if (deleteCharButton) {
-        deleteCharButton.addEventListener('click', deleteCharacter);
-    }
-    
-    // 맞춤 대화 추가
-    const addDialogueButton = document.getElementById('add-dialogue');
-    if (addDialogueButton) {
-        addDialogueButton.addEventListener('click', () => {
-            const textarea = document.getElementById('new-dialogue');
-            if (textarea && textarea.value.trim()) {
-                saveCustomDialogue(textarea.value);
-                textarea.value = '';
-                loadCustomDialogues();
-            }
-        });
-    }
-}
-
-// API 연결 상태 확인
-function checkApiConnection() {
-    import('./ai.js').then(AI => {
-        AI.checkConnection()
-            .then(connected => {
-                apiConnected = connected;
-                updateConnectionStatus(connected);
-            })
-            .catch(error => {
-                console.error('API 연결 확인 중 오류 발생:', error);
-                updateConnectionStatus(false);
-            });
-    });
-}
-
-// 연결 상태 표시 업데이트
-function updateConnectionStatus(connected) {
-    const statusElement = document.getElementById('api-status');
-    if (statusElement) {
-        statusElement.textContent = connected ? '연결됨' : '연결 안됨';
-        statusElement.className = connected ? 'connected' : 'disconnected';
-    }
-    
-    // API 테스트 결과 표시 (보이는 경우)
-    const testResult = document.getElementById('api-test-result');
-    if (testResult && testResult.style.display !== 'none') {
-        testResult.textContent = connected ? 'API 연결 성공!' : 'API 연결 실패!';
-        testResult.className = connected ? 'success' : 'error';
-    }
-}
-
-// 캐릭터 업로드 대화상자 열기
-function openCharacterUploadDialog() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = handleCharacterUpload;
-    input.click();
-}
-
-// 캐릭터 파일 업로드 처리
-function handleCharacterUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const character = {
-            id: Date.now().toString(),
-            name: file.name.replace(/\.[^/.]+$/, ""), // 파일 확장자 제거
-            image: e.target.result,
-            level: 1,
-            happiness: 50,
-            lastInteraction: new Date().toISOString()
-        };
+    function deleteCharacter() {
+        if (!currentCharacter) return;
         
-        currentCharacter = character;
-        localStorage.setItem('character', JSON.stringify(character));
-        displayCharacter(character);
-    };
-    reader.readAsDataURL(file);
-}
-
-// 캐릭터 화면에 표시
-function displayCharacter(character) {
-    const characterDisplay = document.getElementById('character-display');
-    if (!characterDisplay) return;
+        const index = characterList.findIndex(char => char.id === currentCharacter.id);
+        if (index !== -1) {
+            characterList.splice(index, 1);
+            
+            // 로컬 스토리지 업데이트
+            localStorage.setItem('characters', JSON.stringify(characterList));
+            
+            // 현재 캐릭터 업데이트
+            currentCharacter = characterList.length > 0 ? characterList[0] : null;
+            
+            // 화면 업데이트
+            updateCharacterDisplay();
+            
+            // 삭제 확인 팝업 닫기
+            closePopup();
+        }
+    }
     
-    characterDisplay.innerHTML = `
-        <div class="character">
-            <img src="${character.image}" alt="${character.name}" class="character-image">
-            <div class="character-info">
-                <h3>${character.name}</h3>
-                <p>레벨: ${character.level}</p>
-                <p>행복도: ${character.happiness}%</p>
-            </div>
-        </div>
-    `;
+    // 대화 복사
+    function copyDialogue(event) {
+        const dialogueText = event.target.closest('.dialogue-item').querySelector('.dialogue-text').textContent;
+        
+        navigator.clipboard.writeText(dialogueText)
+            .then(() => {
+                alert('대화가 클립보드에 복사되었습니다.');
+            })
+            .catch(err => {
+                console.error('클립보드 복사 실패:', err);
+                alert('클립보드 복사에 실패했습니다.');
+            });
+    }
     
-    updateCharacterInfo(character);
-    showMessage(`${character.name}이(가) 등장했습니다!`);
-}
-
-// 팝업의 캐릭터 정보 업데이트
-function updateCharacterInfo(character) {
-    const characterInfo = document.getElementById('character-info');
-    if (characterInfo && character) {
-        characterInfo.innerHTML = `
-            <div class="character-details">
-                <img src="${character.image}" alt="${character.name}" class="character-thumbnail">
-                <div>
-                    <h3>${character.name}</h3>
-                    <p>레벨: ${character.level}</p>
-                    <p>행복도: ${character.happiness}%</p>
-                    <p>마지막 상호작용: ${new Date(character.lastInteraction).toLocaleString()}</p>
+    // 캐릭터 디스플레이 업데이트
+    function updateCharacterDisplay() {
+        const characterContainer = document.querySelector('.character-container');
+        if (!characterContainer) return;
+        
+        if (currentCharacter) {
+            characterContainer.innerHTML = `
+                <div class="character">
+                    <img src="${currentCharacter.image}" alt="${currentCharacter.name}">
+                    <div class="character-info">
+                        <h2>${currentCharacter.name}</h2>
+                        <p>레벨: ${currentCharacter.level}</p>
+                        <p>경험치: ${currentCharacter.exp}</p>
+                    </div>
+                    <button class="character-action-btn chat-btn">대화하기</button>
+                    <button class="character-action-btn delete-btn">삭제하기</button>
+                </div>
+            `;
+            
+            // 새 이벤트 리스너 추가
+            characterContainer.querySelector('.chat-btn').addEventListener('click', startChat);
+            characterContainer.querySelector('.delete-btn').addEventListener('click', confirmDelete);
+        } else {
+            characterContainer.innerHTML = `
+                <div class="no-character">
+                    <p>캐릭터를 업로드해주세요!</p>
+                    <button class="character-upload-btn">캐릭터 업로드</button>
+                </div>
+            `;
+            
+            characterContainer.querySelector('.character-upload-btn').addEventListener('click', openCharacterUpload);
+        }
+    }
+    
+    // 대화 시작
+    function startChat() {
+        if (!currentCharacter) return;
+        
+        // AI.js의 대화 기능 호출
+        if (typeof AI !== 'undefined' && AI.startConversation) {
+            AI.startConversation(currentCharacter)
+                .then(response => {
+                    // 대화 내용을 캐릭터에 추가
+                    if (!currentCharacter.conversations) {
+                        currentCharacter.conversations = [];
+                    }
+                    
+                    currentCharacter.conversations.push({
+                        timestamp: new Date().toISOString(),
+                        text: response
+                    });
+                    
+                    // 경험치 증가
+                    currentCharacter.exp += 10;
+                    if (currentCharacter.exp >= 100) {
+                        currentCharacter.level += 1;
+                        currentCharacter.exp = 0;
+                    }
+                    
+                    // 로컬 스토리지 업데이트
+                    localStorage.setItem('characters', JSON.stringify(characterList));
+                    
+                    // 화면 업데이트
+                    updateCharacterDisplay();
+                    displayConversation(response);
+                })
+                .catch(error => {
+                    console.error('대화 오류:', error);
+                    alert('대화 생성에 실패했습니다.');
+                });
+        } else {
+            alert('AI 모듈이 로드되지 않았습니다.');
+        }
+    }
+    
+    // 대화 표시
+    function displayConversation(text) {
+        const conversationContainer = document.querySelector('.conversation-container') || createConversationContainer();
+        
+        const dialogue = document.createElement('div');
+        dialogue.classList.add('dialogue-item');
+        
+        dialogue.innerHTML = `
+            <div class="dialogue-text">${text}</div>
+            <button class="copy-button">복사</button>
+            <button class="save-button">저장</button>
+        `;
+        
+        conversationContainer.appendChild(dialogue);
+        
+        // 이벤트 리스너 추가
+        dialogue.querySelector('.copy-button').addEventListener('click', copyDialogue);
+        dialogue.querySelector('.save-button').addEventListener('click', saveCustomDialogue);
+    }
+    
+    // 대화 컨테이너 생성
+    function createConversationContainer() {
+        const container = document.createElement('div');
+        container.classList.add('conversation-container');
+        document.body.appendChild(container);
+        return container;
+    }
+    
+    // 삭제 확인
+    function confirmDelete() {
+        const popup = document.createElement('div');
+        popup.classList.add('confirm-popup');
+        popup.innerHTML = `
+            <div class="confirm-content">
+                <p>정말로 선택한 캐릭터를 삭제하시겠습니까?</p>
+                <p>이 작업은 되돌릴 수 없습니다.</p>
+                <div class="confirm-buttons">
+                    <button class="delete-confirm-btn">삭제</button>
+                    <button class="delete-cancel-btn">취소</button>
                 </div>
             </div>
         `;
-    }
-}
-
-// 메시지 영역에 메시지 표시
-function showMessage(text, isUser = false) {
-    const messageArea = document.getElementById('message-area');
-    if (messageArea) {
-        const messageElement = document.createElement('div');
-        messageElement.className = isUser ? 'message user-message' : 'message';
-        messageElement.textContent = text;
         
-        // 복사 버튼 추가
-        const copyButton = document.createElement('button');
-        copyButton.className = 'copy-button';
-        copyButton.textContent = '복사';
-        copyButton.addEventListener('click', () => {
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    copyButton.textContent = '복사됨';
-                    setTimeout(() => {
-                        copyButton.textContent = '복사';
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error('클립보드에 복사 실패:', err);
-                });
+        document.body.appendChild(popup);
+        
+        // 이벤트 리스너 추가
+        popup.querySelector('.delete-confirm-btn').addEventListener('click', function() {
+            deleteCharacter();
+            document.body.removeChild(popup);
         });
         
-        messageElement.appendChild(copyButton);
-        messageArea.appendChild(messageElement);
-        messageArea.scrollTop = messageArea.scrollHeight;
+        popup.querySelector('.delete-cancel-btn').addEventListener('click', function() {
+            document.body.removeChild(popup);
+        });
     }
-}
+    
+    // 사용자 지정 대화 저장
+    function saveCustomDialogue(event) {
+        const dialogueText = event.target.closest('.dialogue-item').querySelector('.dialogue-text').textContent;
+        
+        let customDialogues = JSON.parse(localStorage.getItem('customDialogues') || '[]');
+        customDialogues.push(dialogueText);
+        localStorage.setItem('customDialogues', JSON.stringify(customDialogues));
+        
+        alert('대화가 맞춤 대화에 저장되었습니다.');
+    }
+    
+    // 팝업 닫기
+    function closePopup() {
+        document.querySelectorAll('.popup').forEach(popup => {
+            popup.style.display = 'none';
+        });
+    }
 
-// AI에 메시지 전송
-async function sendMessage() {
-    const messageInput = document.getElementById('message-input');
-    if (!messageInput || !messageInput.value.trim()) return;
-    
-    const message = messageInput.value.trim();
-    messageInput.value = '';
-    
-    // 사용자 메시지 표시
-    showMessage(message, true);
-    
-    if (!apiConnected) {
-        showMessage('API가 연결되지 않았습니다. API 설정을 확인해주세요.');
-        return;
-    }
-    
-    if (!currentCharacter) {
-        showMessage('먼저 캐릭터를 업로드해주세요.');
-        return;
-    }
-    
-    try {
-        // 로딩 표시
-        const sendButton = document.getElementById('send-button');
-        if (sendButton) {
-            sendButton.disabled = true;
-            sendButton.textContent = '로딩 중...';
-        }
-        
-        // AI 모듈 불러오기 및 응답 가져오기
-        const AI = await import('./ai.js');
-        const response = await AI.sendMessage(message, currentCharacter);
-        
-        // AI 응답 표시
-        showMessage(response);
-        
-        // 캐릭터 상태 업데이트
-        if (currentCharacter) {
-            currentCharacter.lastInteraction = new Date().toISOString();
-            currentCharacter.happiness = Math.min(100, currentCharacter.happiness + 5);
+    // 초기화 함수 호출
+    init();
+
+    // 외부 접근을 위한 공개 API
+    window.AppMain = {
+        getCurrentCharacter: function() {
+            return currentCharacter;
+        },
+        updateCharacter: function(updatedCharacter) {
+            if (!updatedCharacter || !updatedCharacter.id) return;
             
-            // 행복도가 10 증가할 때마다 레벨업
-            const newLevel = Math.floor((currentCharacter.happiness - 50) / 10) + 1;
-            if (newLevel > currentCharacter.level) {
-                currentCharacter.level = newLevel;
-                showMessage(`축하합니다! ${currentCharacter.name}이(가) 레벨 ${newLevel}로 올라갔습니다!`);
-            }
-            
-            localStorage.setItem('character', JSON.stringify(currentCharacter));
-            displayCharacter(currentCharacter);
-        }
-    } catch (error) {
-        showMessage(`오류 발생: ${error.message}`);
-    } finally {
-        // 버튼 상태 복원
-        const sendButton = document.getElementById('send-button');
-        if (sendButton) {
-            sendButton.disabled = false;
-            sendButton.textContent = '전송';
-        }
-    }
-}
-
-// 메뉴 팝업 열기
-function openMenu(menuType) {
-    closeAllPopups(); // 열려있는 팝업 모두 닫기
-    
-    const popup = document.getElementById(`${menuType}-popup`);
-    if (popup) {
-        popup.style.display = 'block';
-        
-        // 메뉴 타입별 특수 동작
-        if (menuType === 'api-connect') {
-            // 저장된 API 키 표시
-            const apiKeyInput = document.getElementById('api-key');
-            if (apiKeyInput) {
-                apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
-            }
-            
-            // 연결 상태 표시 업데이트
-            updateConnectionStatus(apiConnected);
-        } else if (menuType === 'character') {
-            // 캐릭터 정보 업데이트
-            updateCharacterInfo(currentCharacter);
-        }
-    }
-}
-
-// 모든 팝업 닫기
-function closeAllPopups() {
-    const popups = document.querySelectorAll('.popup');
-    popups.forEach(popup => {
-        popup.style.display = 'none';
-    });
-}
-
-// 현재 팝업 닫기
-function closePopup(event) {
-    const popup = event.target.closest('.popup');
-    if (popup) {
-        popup.style.display = 'none';
-    }
-}
-
-// API 연결 테스트
-async function testApiConnection() {
-    const apiKeyInput = document.getElementById('api-key');
-    const testResult = document.getElementById('api-test-result');
-    
-    if (!apiKeyInput || !testResult) return;
-    
-    const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) {
-        testResult.textContent = 'API 키를 입력해주세요.';
-        testResult.className = 'error';
-        return;
-    }
-    
-    testResult.textContent = '연결 테스트 중...';
-    testResult.className = '';
-    
-    try {
-        const AI = await import('./ai.js');
-        const connected = await AI.setApiKey(apiKey);
-        
-        apiConnected = connected;
-        testResult.textContent = connected ? 'API 연결 성공!' : 'API 연결 실패!';
-        testResult.className = connected ? 'success' : 'error';
-        
-        updateConnectionStatus(connected);
-    } catch (error) {
-        testResult.textContent = `오류 발생: ${error.message}`;
-        testResult.className = 'error';
-        updateConnectionStatus(false);
-    }
-}
-
-// API 키 저장
-async function saveApiKey() {
-    const apiKeyInput = document.getElementById('api-key');
-    if (!apiKeyInput) return;
-    
-    const apiKey = apiKeyInput.value.trim();
-    if (apiKey) {
-        const AI = await import('./ai.js');
-        AI.setApiKey(apiKey);
-        showMessage('API 키가 저장되었습니다.');
-        closeAllPopups();
-    } else {
-        const testResult = document.getElementById('api-test-result');
-        if (testResult) {
-            testResult.textContent = 'API 키를 입력해주세요.';
-            testResult.className = 'error';
-        }
-    }
-}
-
-// 캐릭터 삭제 (확인 포함)
-function deleteCharacter() {
-    if (!currentCharacter) {
-        showMessage('삭제할 캐릭터가 없습니다.');
-        return;
-    }
-    
-    if (confirm('정말로 선택한 캐릭터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
-        localStorage.removeItem('character');
-        currentCharacter = null;
-        
-        const characterDisplay = document.getElementById('character-display');
-        if (characterDisplay) {
-            characterDisplay.innerHTML = '';
-        }
-        
-        showMessage('캐릭터가 삭제되었습니다. 새 캐릭터를 업로드해주세요.');
-        closeAllPopups();
-    }
-}
-
-// 맞춤 대화 저장
-function saveCustomDialogue(text) {
-    if (!text.trim()) return;
-    
-    let customDialogues = JSON.parse(localStorage.getItem('customDialogues') || '[]');
-    customDialogues.push({
-        id: Date.now().toString(),
-        text: text,
-        date: new Date().toISOString()
-    });
-    
-    localStorage.setItem('customDialogues', JSON.stringify(customDialogues));
-    showMessage('대화가 저장되었습니다.');
-}
-
-// 맞춤 대화 로드
-function loadCustomDialogues() {
-    const customDialoguesContainer = document.getElementById('custom-dialogues');
-    if (!customDialoguesContainer) return;
-    
-    const customDialogues = JSON.parse(localStorage.getItem('customDialogues') || '[]');
-    
-    customDialoguesContainer.innerHTML = '';
-    
-    if (customDialogues.length === 0) {
-        customDialoguesContainer.innerHTML = '<p>저장된 대화가 없습니다.</p>';
-        return;
-    }
-    
-    customDialogues.forEach(dialogue => {
-        const dialogueElement = document.createElement('div');
-        dialogueElement.className = 'custom-dialogue';
-        
-        dialogueElement.innerHTML = `
-            <p>${dialogue.text}</p>
-            <small>${new Date(dialogue.date).toLocaleString()}</small>
-            <button class="use-dialogue" data-id="${dialogue.id}">사용</button>
-            <button class="delete-dialogue" data-id="${dialogue.id}">삭제</button>
-        `;
-        
-        customDialoguesContainer.appendChild(dialogueElement);
-    });
-    
-    // 대화 버튼 이벤트 리스너
-    document.querySelectorAll('.use-dialogue').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const id = e.target.dataset.id;
-            const dialogue = customDialogues.find(d => d.id === id);
-            if (dialogue) {
-                const messageInput = document.getElementById('message-input');
-                if (messageInput) {
-                    messageInput.value = dialogue.text;
-                    closeAllPopups();
+            const index = characterList.findIndex(char => char.id === updatedCharacter.id);
+            if (index !== -1) {
+                characterList[index] = updatedCharacter;
+                
+                if (currentCharacter && currentCharacter.id === updatedCharacter.id) {
+                    currentCharacter = updatedCharacter;
                 }
+                
+                localStorage.setItem('characters', JSON.stringify(characterList));
+                updateCharacterDisplay();
             }
-        });
-    });
-    
-    document.querySelectorAll('.delete-dialogue').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const id = e.target.dataset.id;
-            const updatedDialogues = customDialogues.filter(d => d.id !== id);
-            localStorage.setItem('customDialogues', JSON.stringify(updatedDialogues));
-            loadCustomDialogues();
-        });
-    });
-}
+        }
+    };
+});
