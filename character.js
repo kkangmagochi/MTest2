@@ -95,54 +95,84 @@ export function loadCharacterByIndex(index) {
 // --- Character Saving ---
 
 function handleSaveCharacter() {
+    console.log("Attempting to save character..."); // Debug log
+
     const name = DOMElements.characterNameInput.value.trim();
-    const setting = DOMElements.characterSettingInput.value.trim(); // Get setting
+    const setting = DOMElements.characterSettingInput.value.trim(); // Get setting value
     const fileInput = DOMElements.characterImgInput;
 
-    if (name === '' || !fileInput.files || fileInput.files.length === 0) {
-        showNotification('캐릭터 이름, 설정, 이미지를 모두 입력해주세요.', 3000);
+    // --- Input Validation ---
+    if (name === '') {
+        showNotification('캐릭터 이름을 입력해주세요.', 3000);
+        console.log("Save failed: Name missing."); // Debug log
         return;
     }
-     if (setting === '') { // Check if setting is empty
+    if (setting === '') { // *** ADDED VALIDATION FOR SETTING ***
         showNotification('캐릭터 설정을 입력해주세요.', 3000);
+        console.log("Save failed: Setting missing."); // Debug log
+        return;
+    }
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showNotification('캐릭터 이미지를 선택해주세요.', 3000);
+        console.log("Save failed: Image missing."); // Debug log
         return;
     }
 
     const file = fileInput.files[0];
     const reader = new FileReader();
-
-    reader.onload = function(e) {
-        const newCharacter = {
-            name: name,
-            image: e.target.result,
-            profileImage: e.target.result, // Default profile image to main image
-            type: DOMElements.characterTypeExisting.checked ? 'existing' : 'original',
-            setting: setting, // Save setting
-            // Detailed fields
-            genre: DOMElements.characterGenreInput.value.trim(),
-            tone: DOMElements.characterToneInput.value.trim(),
-            lore: DOMElements.characterLoreInput.value.trim(),
-            personality: DOMElements.characterPersonalityInput.value.trim(),
-            speechStyle: DOMElements.characterSpeechStyleInput.value.trim(),
-            customDialog: '', // Initialize empty
-            customGift: ''      // Initialize empty
-        };
-
-        addCharacter(newCharacter); // Add to state
-        renderSavedCharactersList(); // Update UI list
-        setCurrentCharacter(newCharacter); // Set as current character
-        displayCurrentCharacterUI();
-        resetCharacterForm();
-        showNotification(`${name} 캐릭터가 저장되었습니다!`, 3000);
-        closeModal(DOMElements.characterModal);
-         generateGreeting(); // Generate greeting for the new character
-    };
-
-    reader.onerror = function() {
+    
+   // --- ADDED: Error handler for FileReader ---
+    reader.onerror = function(error) {
         showNotification('이미지 파일을 읽는 중 오류가 발생했습니다.', 3000);
+        console.error("FileReader Error:", error); // Debug log
     }
 
+    reader.onload = function(e) {
+        console.log("FileReader onload triggered."); // Debug log
+        try {
+            const newCharacter = {
+                name: name,
+                image: e.target.result,
+                profileImage: e.target.result, // Default profile image
+                type: DOMElements.characterTypeExisting.checked ? 'existing' : 'original',
+                setting: setting, // Save setting
+                // Detailed fields
+                genre: DOMElements.characterGenreInput.value.trim(),
+                tone: DOMElements.characterToneInput.value.trim(),
+                lore: DOMElements.characterLoreInput.value.trim(),
+                personality: DOMElements.characterPersonalityInput.value.trim(),
+                speechStyle: DOMElements.characterSpeechStyleInput.value.trim(),
+                customDialog: '', // Initialize empty
+                customGift: ''      // Initialize empty
+            };
+
+            console.log("New character data created:", newCharacter); // Debug log
+
+            addCharacter(newCharacter); // Add to state
+            console.log("Character added to state."); // Debug log
+
+            renderSavedCharactersList(); // Update UI list
+            console.log("Saved characters list rendered."); // Debug log
+
+            setCurrentCharacter(newCharacter); // Set as current character
+            console.log("Current character set."); // Debug log
+
+            displayCurrentCharacterUI(); // Update main view
+            console.log("Main character UI displayed."); // Debug log
+
+            resetCharacterForm();
+            showNotification(`${name} 캐릭터가 저장되었습니다!`, 3000);
+            closeModal(DOMElements.characterModal); // Use the helper function
+             generateGreeting(); // Generate greeting for the new character
+
+        } catch (error) {
+             console.error("Error during character saving process (inside onload):", error); // Debug log
+             showNotification("캐릭터 저장 중 오류가 발생했습니다.", 3000);
+        }
+    };
+
     reader.readAsDataURL(file);
+    console.log("FileReader readAsDataURL called."); // Debug log
 }
 
 function resetCharacterForm() {
