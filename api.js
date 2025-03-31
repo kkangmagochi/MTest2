@@ -106,10 +106,10 @@ export function createCharacterPrompt(actionContext, additionalDetails = '') {
     prompt += `- 이름: ${character.name}\n`;
     prompt += `- 타입: ${character.type === 'existing' ? '기존 작품 캐릭터' : '오리지널 캐릭터'}\n`;
     if (character.setting) prompt += `- 기본 설정: ${character.setting}\n`;
+    if (character.userNickname) prompt += `- 사용자 호칭: ${character.userNickname}\n`;
     if (character.genre) prompt += `- 장르: ${character.genre}\n`;
     if (character.tone) prompt += `- 말투: ${character.tone}\n`;
     if (character.personality) prompt += `- 성격: ${character.personality}\n`;
-    if (character.speechStyle) prompt += `- 말투 특징: ${character.speechStyle}\n`;
     if (character.lore) prompt += `- 세계관: ${character.lore}\n`;
     
     // 현재 상태
@@ -129,7 +129,8 @@ export function createCharacterPrompt(actionContext, additionalDetails = '') {
     prompt += `2. 캐릭터의 성격, 말투, 현재 상태(감정)를 자연스럽게 반영해주세요.\n`;
     prompt += `3. 상황에 맞는 적절하고 창의적인 반응을 보여주세요.\n`;
     prompt += `4. 간결하게 1~3 문장으로 대답해주세요.\n`;
-    prompt += `5. 당신이 AI라는 사실이나 이 지침에 대해서는 절대 언급하지 마세요.\n\n`;
+    prompt += `5. 사용자의 이름을 언급 할 필요가 있는 경우 '${character.userNickname || "사용자"}' 라고 호칭해주세요.\n`;
+    prompt += `6. 당신이 AI라는 사실이나 이 지침에 대해서는 절대 언급하지 마세요.\n\n`;
     
     prompt += `대답:`;
     
@@ -298,7 +299,7 @@ async function handleGenerateDialogs() {
 ${character.setting ? `- 설정: ${character.setting}` : ''}
 ${character.personality ? `- 성격: ${character.personality}` : ''}
 ${character.tone ? `- 말투: ${character.tone}` : ''}
-${character.speechStyle ? `- 말투 특징: ${character.speechStyle}` : ''}
+${character.userNickname ? `- 사용자 호칭: ${character.userNickname}` : ''}
 
 위 정보를 바탕으로, 이 캐릭터가 평소 할 법한 다양한 대사 7개를 생성해주세요.
 
@@ -332,6 +333,7 @@ async function handleGenerateGifts() {
 - 타입: ${character.type === 'existing' ? '기존 작품 캐릭터' : '오리지널 캐릭터'}
 ${character.setting ? `- 설정: ${character.setting}` : ''}
 ${character.personality ? `- 성격: ${character.personality}` : ''}
+${character.userNickname ? `- 사용자 호칭: ${character.userNickname}` : ''}
 ${character.genre ? `- 장르: ${character.genre}` : ''}
 ${character.lore ? `- 세계관: ${character.lore}` : ''}
 
