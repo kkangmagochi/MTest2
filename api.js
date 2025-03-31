@@ -212,28 +212,38 @@ export function testApiConnection() {
         return;
     }
 
+    console.log("Starting API connection test..."); // Debug log
     updateApiConnectionStatus('테스트 중...', 'orange');
     setApiConnected(false); // Assume disconnected until success
 
     // Simple prompt for testing connectivity
-    callGeminiAPI("테스트 메시지입니다.")
+    callGeminiAPI("This is a test message to verify API key validity.")
         .then(response => {
-            console.log("API Connection Test Success:", response);
-            updateApiConnectionStatus('연결됨', 'green');
-            setApiConnected(true);
-            showNotification("API 연결 성공!", 2000);
+            // Check if response is valid (sometimes API might return success code but empty/error content)
+            if (response && typeof response === 'string' && response.length > 0) {
+                console.log("API Connection Test Success:", response); // Debug log
+                updateApiConnectionStatus('연결됨', 'green');
+                setApiConnected(true);
+                showNotification("API 연결 성공!", 2000);
+            } else {
+                 // Handle cases where API returns 200 OK but no valid content (could indicate a different issue)
+                console.warn("API Connection Test Warning: Received success code but invalid content.", response);
+                throw new Error("API는 응답했으나, 유효한 내용을 받지 못했습니다."); // Treat as failure
+            }
         })
         .catch(error => {
-            console.error('API Connection Test Failed:', error);
-             // Error message is handled inside callGeminiAPI for specific key errors
-            if (!error.message.includes("API 키가 유효하지 않습니다")) {
-                updateApiConnectionStatus(`연결 실패: ${error.message}`, 'red');
+            console.error('API Connection Test Failed:', error); // Debug log
+            // Error status might have already been set inside callGeminiAPI for specific errors (like invalid key)
+            // We only update here if it wasn't specifically handled already.
+            const currentStatus = DOMElements.connectionStatus.textContent;
+            if (!currentStatus.includes('잘못된 API 키') && !currentStatus.includes('접근 권한 없음')) {
+                 updateApiConnectionStatus(`연결 실패: ${error.message}`, 'red');
             }
-             setApiConnected(false);
-             // No notification here, error message is in the status
+            // Ensure connected state is false if any error occurs
+            setApiConnected(false);
+            // No success notification on failure
         });
 }
-
 // --- API Test Functionality ---
 function handleApiTest() {
     const testMessage = DOMElements.testMessageInput.value.trim();
