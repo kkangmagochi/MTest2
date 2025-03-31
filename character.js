@@ -282,10 +282,11 @@ function handleUpdateCharacter() {
              fileInput.value = ''; // Clear file input after successful read
         };
 
-        reader.onerror = function() {
-            showNotification('새 이미지를 읽는 중 오류가 발생했습니다.', 3000);
-        }
-        reader.readAsDataURL(file);
+reader.onerror = function() {
+  showNotification('새 이미지를 읽는 중 오류가 발생했습니다.', 3000);
+};
+reader.readAsDataURL(file);
+
     } else {
         // No new image, update with existing image data
         finalizeCharacterUpdate(index, updatedCharacterData);
