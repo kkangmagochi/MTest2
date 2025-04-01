@@ -171,7 +171,6 @@ export function handleSaveCharacter() {
       // 캐릭터를 상태에 추가
       addCharacter(newCharacter);
       console.log("Character added to state.");
-      saveStateToLocalStorage();
       
       // UI 업데이트
       renderSavedCharactersList();
@@ -527,7 +526,6 @@ export function handleSaveSettings() {
     // 현재 캐릭터 상태 업데이트
     setCurrentCharacter(updatedCharacter);
     renderFavoriteGifts();
-saveStateToLocalStorage();
     
     closeModal(DOMElements.settingsModal);
     showNotification('설정이 저장되었습니다.', 3000);
