@@ -1,215 +1,300 @@
-// state.js - Manages application state and local storage
+// ui.js - Handles DOM manipulation and UI updates
+import { getStats, getCurrentCharacter, getDaysCount } from './state.js';
 
-// Private state variables
-let _stats = { affection: 50, hunger: 50, happiness: 50 };
-let _currentCharacter = null;
-let _characters = [];
-let _apiKey = '';
-let _apiConnected = false;
-let _daysCount = 0;
-let _characterStats = {}; // Character-specific stats
-let _dialogLogs = [];
-let _selectedModel = 'gemini-2.0-flash'; // Default model
+// --- DOM Element Selection ---
+export const DOMElements = {
+    characterContainer: document.getElementById('character-container'),
+    noCharacterDisplay: document.getElementById('no-character'),
+    characterImage: document.getElementById('character-image'),
+    speechBubble: document.getElementById('speech-bubble'),
+    characterSpeech: document.getElementById('character-speech'),
+    gameTitle: document.getElementById('game-title'),
+    affectionBar: document.getElementById('affection-bar'),
+    hungerBar: document.getElementById('hunger-bar'),
+    happinessBar: document.getElementById('happiness-bar'),
+    affectionValue: document.getElementById('affection-value'),
+    hungerValue: document.getElementById('hunger-value'),
+    happinessValue: document.getElementById('happiness-value'),
+    daysCountDisplay: document.getElementById('days-count'),
+    characterStatus: document.getElementById('character-status-text'),
+    profileImage: document.getElementById('profile-image'),
+    statsResetBtn: document.getElementById('stats-reset-btn'),
+    feedButton: document.getElementById('feed-button'),
+    playButton: document.getElementById('play-button'),
+    giftButton: document.getElementById('gift-button'),
+    sleepButton: document.getElementById('sleep-button'),
+    customGiftInput: document.getElementById('custom-gift-input'),
+    giveGiftBtn: document.getElementById('give-gift-btn'),
+    characterUploadBtn: document.getElementById('character-upload-btn'),
+    settingsBtn: document.getElementById('settings-btn'),
+    apiConnectionBtn: document.getElementById('api-connection-btn'),
+    profileBtn: document.getElementById('profile-btn'),
+    shareBtn: document.getElementById('share-btn'),
+    dialogLogsBtn: document.getElementById('dialog-logs-btn'),
+    characterModal: document.getElementById('character-modal'),
+    settingsModal: document.getElementById('settings-modal'),
+    apiModal: document.getElementById('api-modal'),
+    profileModal: document.getElementById('profile-modal'),
+    shareModal: document.getElementById('share-modal'),
+    editCharacterModal: document.getElementById('edit-character-modal'),
+    deleteCharacterModal: document.getElementById('delete-character-modal'),
+    dialogLogsModal: document.getElementById('dialog-logs-modal'),
+    nightOverlay: document.getElementById('night-overlay'),
+    closeButtons: document.querySelectorAll('.close'),
+    dialogLogsList: document.getElementById('dialog-logs-list'),
+    characterNameInput: document.getElementById('character-name'),
+    characterImgInput: document.getElementById('character-img'),
+    characterTypeExisting: document.getElementById('character-type-existing'),
+    // Add other form inputs as needed from original script...
+    characterSettingInput: document.getElementById('character-setting'),
+    characterUserNicknameInput: document.getElementById('character-user-nickname'),
+    characterGenreInput: document.getElementById('character-genre'),
+    characterToneInput: document.getElementById('character-tone'),
+    characterLoreInput: document.getElementById('character-lore'),
+    characterPersonalityInput: document.getElementById('character-personality'),
+    characterSpeechStyleInput: document.getElementById('character-speech-style'),
+    saveCharacterBtn: document.getElementById('save-character'),
+    savedCharactersList: document.getElementById('saved-characters-list'),
+    editCharacterBtn: document.getElementById('edit-character-btn'),
+    deleteCharacterBtn: document.getElementById('delete-character-btn'),
+    currentCharacterName: document.getElementById('current-character-name'),
+    customDialogInput: document.getElementById('custom-dialog'),
+    customGiftListInput: document.getElementById('custom-gift'), // Renamed from customGift
+    saveSettingsBtn: document.getElementById('save-settings'),
+    generateDialogBtn: document.getElementById('generate-dialog-btn'),
+    generateGiftsBtn: document.getElementById('generate-gifts-btn'),
+    dialogGenerationStatus: document.getElementById('dialog-generation-status'),
+    giftGenerationStatus: document.getElementById('gift-generation-status'),
+    editCharacterSelect: document.getElementById('edit-character-select'),
+    editCharacterForm: document.getElementById('edit-character-form'),
+    editCharacterNameInput: document.getElementById('edit-character-name'),
+    editCharacterImgInput: document.getElementById('edit-character-img'),
+    editCharacterUserNicknameInput: document.getElementById('edit-character-user-nickname'),
+    currentCharacterImg: document.getElementById('current-character-img'),
+    editCharacterTypeExisting: document.getElementById('edit-character-type-existing'),
+    editCharacterSettingInput: document.getElementById('edit-character-setting'),
+    editCharacterGenreInput: document.getElementById('edit-character-genre'),
+    editCharacterToneInput: document.getElementById('edit-character-tone'),
+    editCharacterLoreInput: document.getElementById('edit-character-lore'),
+    editCharacterPersonalityInput: document.getElementById('edit-character-personality'),
+    editCharacterSpeechStyleInput: document.getElementById('edit-character-speech-style'),
+    updateCharacterBtn: document.getElementById('update-character'),
+    deleteCharacterSelect: document.getElementById('delete-character-select'),
+    confirmDeleteBtn: document.getElementById('confirm-delete'),
+    cancelDeleteBtn: document.getElementById('cancel-delete'),
+    apiKeyInput: document.getElementById('api-key'),
+    connectApiBtn: document.getElementById('connect-api'),
+    connectionStatus: document.getElementById('connection-status'),
+    testMessageInput: document.getElementById('test-message'),
+    testApiBtn: document.getElementById('test-api'),
+    apiResponse: document.getElementById('api-response'),
+    modelFlashRadio: document.getElementById('model-flash'),
+    modelProRadio: document.getElementById('model-pro'),
+    profileCharacterName: document.getElementById('profile-character-name'),
+    profileImgInput: document.getElementById('profile-img'),
+    saveProfileBtn: document.getElementById('save-profile'),
+    profilePreviewImg: document.getElementById('profile-preview-img'),
+    createShareImageBtn: document.getElementById('create-share-image'),
+    shareImageContainer: document.getElementById('share-image-container'),
+    downloadShareImageBtn: document.getElementById('download-share-image'),
+    favoriteGiftsList: document.getElementById('favorite-gifts-list'),
+    notificationTemplate: document.getElementById('notification-template'),
+    notificationMessage: document.getElementById('notification-message'),
+};
 
-const MAX_DIALOG_LOGS = 10;
+let speechTimeout = null; // To manage speech bubble hiding
 
-// --- Getters ---
-export function getStats() { return { ..._stats }; } // Return a copy
-export function getCurrentCharacter() { return _currentCharacter; }
-export function getCharacters() { return [..._characters]; } // Return a copy
-export function getApiKey() { return _apiKey; }
-export function isApiConnected() { return _apiConnected; }
-export function getDaysCount() { return _daysCount; }
-export function getCharacterStats(characterName) { return _characterStats[characterName] ? { ..._characterStats[characterName] } : null; }
-export function getAllCharacterStats() { return { ..._characterStats }; }
-export function getDialogLogs() { return [..._dialogLogs]; } // Return a copy
-export function getSelectedModel() { return _selectedModel; }
+// --- UI Update Functions ---
 
-// --- Setters/Updaters ---
-export function setStats(newStats) {
-    _stats = { ...newStats };
-    // Ensure stats are within bounds
-    _stats.affection = Math.max(0, Math.min(100, _stats.affection));
-    _stats.hunger = Math.max(0, Math.min(100, _stats.hunger));
-    _stats.happiness = Math.max(0, Math.min(100, _stats.happiness));
+export function updateStatsDisplay() {
+    const stats = getStats();
+    DOMElements.affectionBar.style.width = `${stats.affection}%`;
+    DOMElements.hungerBar.style.width = `${stats.hunger}%`;
+    DOMElements.happinessBar.style.width = `${stats.happiness}%`;
 
-    if (_currentCharacter) {
-        _characterStats[_currentCharacter.name] = { ..._stats };
-    }
-    saveStateToLocalStorage();
+    DOMElements.affectionValue.textContent = Math.round(stats.affection);
+    DOMElements.hungerValue.textContent = Math.round(stats.hunger);
+    DOMElements.happinessValue.textContent = Math.round(stats.happiness);
+
+    updateCharacterStatus(); // Update status text based on new stats
 }
 
-export function updateStat(statName, value) {
-    if (_stats.hasOwnProperty(statName)) {
-        _stats[statName] = Math.max(0, Math.min(100, _stats[statName] + value));
-        if (_currentCharacter) {
-            _characterStats[_currentCharacter.name] = { ..._stats };
-        }
-        saveStateToLocalStorage();
-    }
+export function updateCharacterStatus() {
+    const currentCharacter = getCurrentCharacter();
+    if (!currentCharacter) return;
+
+    const stats = getStats();
+    let status = "기본 상태";
+
+    if (stats.hunger < 20) status = "배고픔";
+    else if (stats.happiness < 20) status = "우울함";
+    else if (stats.affection < 20) status = "외로움";
+    else if (stats.hunger > 80 && stats.happiness > 80 && stats.affection > 80) status = "최상의 상태";
+    else if (stats.hunger > 60 && stats.happiness > 60 && stats.affection > 60) status = "행복한 상태";
+
+    DOMElements.characterStatus.textContent = status;
 }
 
-export function setCurrentCharacter(character) {
-    _currentCharacter = character;
-    if (_currentCharacter && _characterStats[_currentCharacter.name]) {
-        _stats = { ..._characterStats[_currentCharacter.name] };
-    } else if (_currentCharacter) {
-        // Initialize stats for new character if none exist
-        _stats = { affection: 50, hunger: 50, happiness: 50 };
-        _characterStats[_currentCharacter.name] = { ..._stats };
+export function updateGameTitle() {
+    const currentCharacter = getCurrentCharacter();
+    const title = currentCharacter ? `${currentCharacter.name} 키우기` : '나만의 펫 키우기'; // Avoid specific game name
+    DOMElements.gameTitle.textContent = title;
+    document.title = title;
+}
+
+export function displayCurrentCharacterUI() {
+    const currentCharacter = getCurrentCharacter();
+
+    if (currentCharacter) {
+        DOMElements.characterImage.src = currentCharacter.image;
+        DOMElements.noCharacterDisplay.classList.remove('show');
+        DOMElements.noCharacterDisplay.classList.add('hide');
+        DOMElements.characterContainer.classList.remove('hide');
+        DOMElements.characterContainer.classList.add('show');
+
+        DOMElements.profileImage.src = currentCharacter.profileImage || currentCharacter.image; // Use profile or default image
+        updateGameTitle();
+
+        // Update settings/profile modal placeholders
+        DOMElements.currentCharacterName.textContent = currentCharacter.name;
+        DOMElements.profileCharacterName.textContent = currentCharacter.name;
+        DOMElements.profilePreviewImg.src = currentCharacter.profileImage || currentCharacter.image;
+
+        // Load character-specific settings into inputs
+        DOMElements.customDialogInput.value = currentCharacter.customDialog || '';
+        console.log(`Loading gifts for ${currentCharacter.name}:`, currentCharacter.customGift);
+        DOMElements.customGiftListInput.value = currentCharacter.customGift || '';
+
+        renderFavoriteGifts();
     } else {
-        // Reset stats if no character is selected
-        _stats = { affection: 50, hunger: 50, happiness: 50 };
+        DOMElements.noCharacterDisplay.classList.remove('hide');
+        DOMElements.noCharacterDisplay.classList.add('show');
+        DOMElements.characterContainer.classList.remove('show');
+        DOMElements.characterContainer.classList.add('hide');
+        updateGameTitle();
+
+        // Reset settings/profile placeholders
+        DOMElements.currentCharacterName.textContent = '없음';
+        DOMElements.profileCharacterName.textContent = '없음';
+        DOMElements.profilePreviewImg.src = '';
+        DOMElements.customDialogInput.value = '';
+        DOMElements.customGiftListInput.value = '';
+        DOMElements.favoriteGiftsList.innerHTML = ''; // Clear favorite gifts
     }
-    saveStateToLocalStorage(); // Save character change
+    updateStatsDisplay(); // Refresh stats display for the loaded/unloaded character
+    updateDaysDisplay(); // Refresh days display
 }
 
-export function setCharacters(newCharacters) {
-    _characters = [...newCharacters]; // Store a copy
-    saveStateToLocalStorage();
-}
-
-export function addCharacter(newCharacter) {
-    _characters.push(newCharacter);
-    // Initialize stats for the new character
-    _characterStats[newCharacter.name] = { affection: 50, hunger: 50, happiness: 50 };
-    saveStateToLocalStorage();
-}
-
-export function updateCharacterInList(index, updatedCharacter) {
-    if (index >= 0 && index < _characters.length) {
-        const oldName = _characters[index].name;
-        _characters[index] = updatedCharacter;
-
-        // If name changed, migrate stats
-        if (oldName !== updatedCharacter.name && _characterStats[oldName]) {
-            _characterStats[updatedCharacter.name] = { ..._characterStats[oldName] };
-            delete _characterStats[oldName];
-        }
-        saveStateToLocalStorage();
+export function showSpeechBubble(text, duration = 5000) {
+    if (!text || text.trim() === '') {
+        DOMElements.speechBubble.classList.add('hide');
+        return;
     }
+    DOMElements.characterSpeech.textContent = text;
+    DOMElements.speechBubble.classList.remove('hide');
+
+    // Clear existing timer if any
+    if (speechTimeout) clearTimeout(speechTimeout);
+
+    // Set timer to hide bubble
+    speechTimeout = setTimeout(() => {
+        DOMElements.speechBubble.classList.add('hide');
+        speechTimeout = null;
+    }, duration);
 }
 
-export function removeCharacterFromList(index) {
-     if (index >= 0 && index < _characters.length) {
-        const removedCharName = _characters[index].name;
-        _characters.splice(index, 1);
-        // Remove associated stats
-        if (_characterStats[removedCharName]) {
-            delete _characterStats[removedCharName];
+export function renderFavoriteGifts() {
+    const currentCharacter = getCurrentCharacter();
+    const listElement = DOMElements.favoriteGiftsList;
+    listElement.innerHTML = ''; // Clear previous gifts
+
+    if (!currentCharacter || !currentCharacter.customGift) return;
+
+    const gifts = currentCharacter.customGift.split(',')
+        .map(gift => gift.trim())
+        .filter(gift => gift !== ''); // Filter out empty strings
+
+    gifts.forEach(gift => {
+        const giftTag = document.createElement('div');
+        giftTag.className = 'gift-tag';
+        giftTag.textContent = gift;
+
+        giftTag.addEventListener('click', () => {
+            DOMElements.customGiftInput.value = gift; // Set input value on click
+        });
+
+        // Optional: Add remove functionality here if needed later
+        // const removeBtn = document.createElement('span');
+        // removeBtn.className = 'remove-gift';
+        // removeBtn.textContent = 'x';
+        // removeBtn.onclick = (e) => { /* remove logic */ e.stopPropagation(); };
+        // giftTag.appendChild(removeBtn);
+
+        listElement.appendChild(giftTag);
+    });
+}
+
+export function animateCharacter() {
+    DOMElements.characterImage.classList.add('bounce');
+    setTimeout(() => {
+        DOMElements.characterImage.classList.remove('bounce');
+    }, 500); // Match animation duration
+}
+
+export function playNightAnimation() {
+    DOMElements.nightOverlay.style.opacity = '1';
+    setTimeout(() => {
+        DOMElements.nightOverlay.style.opacity = '0';
+    }, 1500);
+}
+
+export function updateDaysDisplay() {
+    DOMElements.daysCountDisplay.textContent = getDaysCount();
+}
+
+// Simple Notification System
+export function showNotification(message, duration = 3000) {
+    const notification = DOMElements.notificationTemplate.cloneNode(true);
+    notification.id = ''; // Remove template ID
+    notification.querySelector('#notification-message').textContent = message;
+    notification.style.display = 'block';
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.remove();
+    }, duration);
+}
+
+// Function to update API connection status display
+export function updateApiConnectionStatus(statusText, color) {
+    DOMElements.connectionStatus.textContent = statusText;
+    DOMElements.connectionStatus.style.color = color;
+    DOMElements.testApiBtn.disabled = statusText !== '연결됨'; // Disable test button if not connected
+}
+
+// Function to display API test response
+export function displayApiResponse(htmlContent) {
+    DOMElements.apiResponse.innerHTML = htmlContent;
+}
+
+// Function to update AI generation status
+export function updateGenerationStatus(element, message) {
+     if (element) {
+        element.textContent = message;
+        if (message && message !== "생성 중...") {
+            // Clear status after a delay if it's not "Generating..."
+            setTimeout(() => {
+                element.textContent = "";
+            }, 3000);
         }
-        saveStateToLocalStorage();
      }
 }
 
-export function setApiKey(key) {
-    _apiKey = key;
-    localStorage.setItem('geminiApiKey', _apiKey); // Save API key separately
-}
-
-export function setApiConnected(isConnected) {
-    _apiConnected = isConnected;
-}
-
-export function incrementDaysCount() {
-    _daysCount++;
-    saveStateToLocalStorage();
-}
-
-export function setDaysCount(count) {
-    _daysCount = count;
-    saveStateToLocalStorage();
-}
-
-export function addDialogLog(logEntry) {
-    _dialogLogs.unshift(logEntry); // Add to the beginning
-    if (_dialogLogs.length > MAX_DIALOG_LOGS) {
-        _dialogLogs.pop(); // Remove the oldest log
-    }
-    saveStateToLocalStorage();
-}
-
-export function setDialogLogs(logs) {
-    _dialogLogs = logs.slice(0, MAX_DIALOG_LOGS); // Ensure max size
-    saveStateToLocalStorage();
-}
-
-export function removeDialogLog(index) {
-    if (index >= 0 && index < _dialogLogs.length) {
-        _dialogLogs.splice(index, 1);
-        saveStateToLocalStorage();
-    }
-}
-
-export function setSelectedModel(modelName) {
-    _selectedModel = modelName;
-    localStorage.setItem('selectedModel', _selectedModel); // Save model selection separately
-}
-
-// --- Local Storage ---
-const STORAGE_KEYS = {
-    CHARACTERS: 'virtualPetCharacters',
-    CHARACTER_STATS: 'virtualPetCharacterStats',
-    STATS: 'virtualPetStats', // For the last active character state
-    CURRENT_CHARACTER: 'virtualPetCurrentCharacter',
-    DAYS_COUNT: 'virtualPetDaysCount',
-    DIALOG_LOGS: 'virtualPetDialogLogs'
-    // API Key and Model are saved separately above
-};
-
-export function loadStateFromLocalStorage() {
-    const savedCharacters = localStorage.getItem(STORAGE_KEYS.CHARACTERS);
-    if (savedCharacters) _characters = JSON.parse(savedCharacters);
-
-    const savedCharacterStats = localStorage.getItem(STORAGE_KEYS.CHARACTER_STATS);
-    if (savedCharacterStats) _characterStats = JSON.parse(savedCharacterStats);
-
-    // Load current character *after* characters and stats
-    const savedCurrentCharacter = localStorage.getItem(STORAGE_KEYS.CURRENT_CHARACTER);
-     if (savedCurrentCharacter) {
-        _currentCharacter = JSON.parse(savedCurrentCharacter);
-        // Load the stats for the current character if they exist
-        if (_characterStats[_currentCharacter.name]) {
-            _stats = { ..._characterStats[_currentCharacter.name] };
-        } else {
-             // Fallback if stats for the loaded character are missing
-            _stats = { affection: 50, hunger: 50, happiness: 50 };
-            _characterStats[_currentCharacter.name] = { ..._stats }; // Save default stats for them
-        }
+// Load initial model selection UI state
+export function updateModelSelectionUI(selectedModel) {
+    if (selectedModel === 'gemini-2.0-flash') {
+        DOMElements.modelFlashRadio.checked = true;
     } else {
-         // If no current character, load general stats or defaults
-        const savedStats = localStorage.getItem(STORAGE_KEYS.STATS);
-        _stats = savedStats ? JSON.parse(savedStats) : { affection: 50, hunger: 50, happiness: 50 };
+        DOMElements.modelProRadio.checked = true;
     }
-
-
-    const savedApiKey = localStorage.getItem('geminiApiKey');
-    if (savedApiKey) _apiKey = savedApiKey;
-
-    const savedDaysCount = localStorage.getItem(STORAGE_KEYS.DAYS_COUNT);
-    if (savedDaysCount) _daysCount = parseInt(savedDaysCount);
-
-    const savedDialogLogs = localStorage.getItem(STORAGE_KEYS.DIALOG_LOGS);
-    if (savedDialogLogs) _dialogLogs = JSON.parse(savedDialogLogs);
-
-    const savedModel = localStorage.getItem('selectedModel');
-    if (savedModel) _selectedModel = savedModel;
-
-    console.log("State loaded from local storage.");
-}
-
-export function saveStateToLocalStorage() {
-    localStorage.setItem(STORAGE_KEYS.CHARACTERS, JSON.stringify(_characters));
-    localStorage.setItem(STORAGE_KEYS.CHARACTER_STATS, JSON.stringify(_characterStats));
-    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(_stats)); // Save last active stats
-    localStorage.setItem(STORAGE_KEYS.DAYS_COUNT, _daysCount.toString());
-    localStorage.setItem(STORAGE_KEYS.DIALOG_LOGS, JSON.stringify(_dialogLogs));
-
-    if (_currentCharacter) {
-        localStorage.setItem(STORAGE_KEYS.CURRENT_CHARACTER, JSON.stringify(_currentCharacter));
-    } else {
-        localStorage.removeItem(STORAGE_KEYS.CURRENT_CHARACTER);
-    }
-    // API Key and Model are saved in their setters
-    console.log("State saved to local storage.");
 }
