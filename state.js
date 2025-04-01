@@ -159,7 +159,14 @@ const STORAGE_KEYS = {
 
 export function loadStateFromLocalStorage() {
     const savedCharacters = localStorage.getItem(STORAGE_KEYS.CHARACTERS);
-    if (savedCharacters) _characters = JSON.parse(savedCharacters);
+    if (savedCharacters) {
+  _characters = JSON.parse(savedCharacters);
+  console.log("Loaded characters:", _characters);
+  // 각 캐릭터의 customGift 확인
+  _characters.forEach(char => {
+    console.log(`Character ${char.name} has gifts:`, char.customGift);
+  });
+}
 
     const savedCharacterStats = localStorage.getItem(STORAGE_KEYS.CHARACTER_STATS);
     if (savedCharacterStats) _characterStats = JSON.parse(savedCharacterStats);
