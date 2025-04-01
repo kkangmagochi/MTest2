@@ -162,7 +162,6 @@ export function displayCurrentCharacterUI() {
 
         // Load character-specific settings into inputs
         DOMElements.customDialogInput.value = currentCharacter.customDialog || '';
-        console.log(`Loading gifts for ${currentCharacter.name}:`, currentCharacter.customGift);
         DOMElements.customGiftListInput.value = currentCharacter.customGift || '';
 
         renderFavoriteGifts();
