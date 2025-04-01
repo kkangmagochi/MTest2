@@ -171,6 +171,7 @@ export function handleSaveCharacter() {
       // 캐릭터를 상태에 추가
       addCharacter(newCharacter);
       console.log("Character added to state.");
+      saveStateToLocalStorage();
       
       // UI 업데이트
       renderSavedCharactersList();
