@@ -526,7 +526,6 @@ export function handleSaveSettings() {
     // 현재 캐릭터 상태 업데이트
     setCurrentCharacter(updatedCharacter);
     renderFavoriteGifts();
-    import { saveStateToLocalStorage } from './state.js';
 saveStateToLocalStorage();
     
     closeModal(DOMElements.settingsModal);
