@@ -326,19 +326,19 @@ export function handleUpdateCharacter() {
   }
   
   // 업데이트된 캐릭터 데이터 생성
-  const updatedCharacterData = {
-    ...originalCharacter,
-    name: name,
-    setting: setting || originalCharacter.setting || '',
-    userNickname: DOMElements.editCharacterUserNicknameInput?.value?.trim() || originalCharacter.userNickname || '',
-    type: DOMElements.editCharacterTypeOriginal?.checked ? 'original' : 'existing',
-    
-    // 상세 필드 업데이트
-    genre: DOMElements.editCharacterGenreInput?.value?.trim() || originalCharacter.genre || '',
-    tone: DOMElements.editCharacterToneInput?.value?.trim() || originalCharacter.tone || '',
-    lore: DOMElements.editCharacterLoreInput?.value?.trim() || originalCharacter.lore || '',
-    personality: DOMElements.editCharacterPersonalityInput?.value?.trim() || originalCharacter.personality || '',
-  };
+const updatedCharacterData = {
+  ...originalCharacter,
+  name: name,
+  // DOMElements가 존재하면 입력된 값 그대로 사용(빈 값도 그대로 적용)
+  setting: DOMElements.editCharacterSettingInput ? setting : (originalCharacter.setting || ''),
+  userNickname: DOMElements.editCharacterUserNicknameInput ? DOMElements.editCharacterUserNicknameInput.value.trim() : (originalCharacter.userNickname || ''),
+  type: DOMElements.editCharacterTypeOriginal?.checked ? 'original' : 'existing',
+  // 상세 필드도 마찬가지로 수정
+  genre: DOMElements.editCharacterGenreInput ? DOMElements.editCharacterGenreInput.value.trim() : (originalCharacter.genre || ''),
+  tone: DOMElements.editCharacterToneInput ? DOMElements.editCharacterToneInput.value.trim() : (originalCharacter.tone || ''),
+  lore: DOMElements.editCharacterLoreInput ? DOMElements.editCharacterLoreInput.value.trim() : (originalCharacter.lore || ''),
+  personality: DOMElements.editCharacterPersonalityInput ? DOMElements.editCharacterPersonalityInput.value.trim() : (originalCharacter.personality || ''),
+};
   
   // 새 이미지 파일 선택 여부 확인
   const fileInput = DOMElements.editCharacterImgInput;
