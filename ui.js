@@ -69,6 +69,7 @@ export const DOMElements = {
     editCharacterForm: document.getElementById('edit-character-form'),
     editCharacterNameInput: document.getElementById('edit-character-name'),
     editCharacterImgInput: document.getElementById('edit-character-img'),
+    editCharacterUserNicknameInput: document.getElementById('edit-character-user-nickname'),
     currentCharacterImg: document.getElementById('current-character-img'),
     editCharacterTypeExisting: document.getElementById('edit-character-type-existing'),
     editCharacterSettingInput: document.getElementById('edit-character-setting'),
