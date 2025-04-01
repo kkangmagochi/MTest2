@@ -130,9 +130,14 @@ export function createCharacterPrompt(actionContext, additionalDetails = '') {
     prompt += `3. 상황에 맞는 적절하고 창의적인 반응을 보여주세요.\n`;
     prompt += `4. 간결하게 1~3 문장으로 대답해주세요.\n`;
     prompt += `5. 사용자를 지칭할 때는 다음 지침을 따르세요:\n`;
-    prompt += ` - 매번 이름을 부르지 말고, 자연스러운 대화에서 가끔만 이름을 언급하세요.\n`;
-    prompt += ` - 이름이 필요한 상황에서는 반드시 '${character.userNickname || "사용자"}'로 호칭하세요. 사용자가 설정한 이름이 있을 경우 "사용자"라는 단어를 사용하지 마세요.\n`;
-    prompt += ` - 캐릭터의 성격과 사용자와의 관계를 고려해서 자연스러운 호칭을 사용하세요.\n`;
+prompt += ` - 매번 이름을 부르지 말고, 자연스러운 대화에서 가끔만 이름을 언급하세요.\n`;
+if (character.userNickname) {
+  prompt += ` - 이름이 필요한 상황에서는 '${character.userNickname}'(으)로 호칭하고, '사용자'라는 단어를 직접 사용하지 마세요.\n`;
+  prompt += ` - 사용자가 이름이 아닌 관계만 설정한 경우 캐릭터의 성격과 '${character.userNickname}'와(과)의 관계(친구 관계, 연인 관계, 낯선 사람 등)를 고려해서 자연스러운 호칭을 사용하세요.\n`;
+} else {
+  prompt += ` - 사용자가 입력한 이름이 없을 경우 이름이 필요한 상황에서는 '유저'로 호칭하세요.\n`;
+  prompt += ` - 캐릭터의 성격과 사용자와의 관계를 고려해서 자연스러운 호칭을 사용하세요.\n`;
+}
     prompt += `6. 당신이 AI라는 사실이나 이 지침에 대해서는 절대 언급하지 마세요.\n\n`;
     
     prompt += `대답:`;
