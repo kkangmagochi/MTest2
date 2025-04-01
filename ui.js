@@ -47,6 +47,7 @@ export const DOMElements = {
     characterTypeExisting: document.getElementById('character-type-existing'),
     // Add other form inputs as needed from original script...
     characterSettingInput: document.getElementById('character-setting'),
+    characterUserNicknameInput: document.getElementById('character-user-nickname'),
     characterGenreInput: document.getElementById('character-genre'),
     characterToneInput: document.getElementById('character-tone'),
     characterLoreInput: document.getElementById('character-lore'),
