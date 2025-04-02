@@ -546,7 +546,6 @@ export function handleProfileImageUpload() {
   }
   
   const file = fileInput.files[0];
- const file = fileInput.files[0];
 
 processImageFile(file) // 프로필 이미지도 동일하게 처리
   .then(newProfileImage => {
