@@ -206,24 +206,17 @@ export function loadStateFromLocalStorage() {
 }
 
 export function saveStateToLocalStorage() {
-    try {
-        localStorage.setItem(STORAGE_KEYS.CHARACTERS, JSON.stringify(_characters));
-        localStorage.setItem(STORAGE_KEYS.CHARACTER_STATS, JSON.stringify(_characterStats));
-        localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(_stats));
-        localStorage.setItem(STORAGE_KEYS.DAYS_COUNT, _daysCount.toString());
-        localStorage.setItem(STORAGE_KEYS.DIALOG_LOGS, JSON.stringify(_dialogLogs));
-        if (_currentCharacter) {
-            localStorage.setItem(STORAGE_KEYS.CURRENT_CHARACTER, JSON.stringify(_currentCharacter));
-        } else {
-            localStorage.removeItem(STORAGE_KEYS.CURRENT_CHARACTER);
-        }
-        
-        console.log("State saved to local storage.");
-        return true;
-    } catch (error) {
-        console.error("Error saving to localStorage:", error);
-        // 저장 공간 부족 오류 발생 시
-        throw new Error("Storage space exceeded");
-    }
-}
+    localStorage.setItem(STORAGE_KEYS.CHARACTERS, JSON.stringify(_characters));
+    localStorage.setItem(STORAGE_KEYS.CHARACTER_STATS, JSON.stringify(_characterStats));
+    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(_stats)); // Save last active stats
+    localStorage.setItem(STORAGE_KEYS.DAYS_COUNT, _daysCount.toString());
+    localStorage.setItem(STORAGE_KEYS.DIALOG_LOGS, JSON.stringify(_dialogLogs));
 
+    if (_currentCharacter) {
+        localStorage.setItem(STORAGE_KEYS.CURRENT_CHARACTER, JSON.stringify(_currentCharacter));
+    } else {
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_CHARACTER);
+    }
+    // API Key and Model are saved in their setters
+    console.log("State saved to local storage.");
+}
