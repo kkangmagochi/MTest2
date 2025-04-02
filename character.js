@@ -437,18 +437,7 @@ if (fileInput && fileInput.files && fileInput.files.length > 0) {
       }
   }
 }
-      if (fileInput) fileInput.value = '';
-    };
-    
-    reader.onerror = function() {
-      showNotification('새 이미지를 읽는 중 오류가 발생했습니다.', 3000);
-    };
-    
-    reader.readAsDataURL(file);
-  } else {
-    // 이미지 변경 없이 업데이트
-    finalizeCharacterUpdate(index, updatedCharacterData);
-  }
+  
 }
 
 function finalizeCharacterUpdate(index, updatedCharacter) {
