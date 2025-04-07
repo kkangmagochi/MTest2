@@ -585,6 +585,10 @@ export function handleSaveSettings() {
   
   const customDialog = DOMElements.customDialogInput?.value?.trim() || '';
   const customGift = DOMElements.customGiftListInput?.value?.trim() || '';
+
+  console.log(`Saving settings for ${currentCharacter.name}:`);
+  console.log(`  Custom Dialog: ${customDialog}`);
+  console.log(`  Custom Gift: ${customGift}`); // 저장될 선물 목록 값 확인
   
   // 메인 목록에서 캐릭터 찾아서 업데이트
   const characters = getCharacters();
@@ -592,6 +596,10 @@ export function handleSaveSettings() {
   if (index !== -1) {
     const updatedCharacter = { ...characters[index], customDialog, customGift };
     updateCharacterInList(index, updatedCharacter);
+
+     console.log(`Updating character at index ${index} with:`, updatedCharacter);
+    
+updateCharacterInList(index, updatedCharacter);
     
     // 현재 캐릭터 상태 업데이트
     setCurrentCharacter(updatedCharacter);
