@@ -245,15 +245,7 @@ processImageFile(file)
     console.error("Error processing image:", error);
     showNotification(`이미지 처리 중 오류 발생: ${error.message}`, 3000);
   });
-  
-  // 파일 읽기 시작
-  try {
-    reader.readAsDataURL(file);
-    console.log("FileReader readAsDataURL called.");
-  } catch (error) {
-    console.error("Error reading file:", error);
-    showNotification("파일 읽기 오류가 발생했습니다.", 3000);
-  }
+
 }
 
 function resetCharacterForm() {
