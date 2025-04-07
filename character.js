@@ -584,8 +584,7 @@ export function handleSaveSettings() {
   }
   
   const customDialog = DOMElements.customDialogInput?.value?.trim() || '';
-  const customGift = DOMElements.customGiftListInput?.value?.trim() || 
-                    DOMElements.customGiftList?.value?.trim() || '';
+  const customGift = DOMElements.customGiftListInput?.value?.trim() || '';
   
   // 메인 목록에서 캐릭터 찾아서 업데이트
   const characters = getCharacters();
