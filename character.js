@@ -13,61 +13,6 @@ import {
 } from './state.js';
 import { generateGreeting } from './api.js';
 
-// --- 이미지 처리 헬퍼 ---
-async function processImageFile(file, maxWidth = 200, maxHeight = 200, quality = 0.7, maxSizeKB = 300) {
-    return new Promise((resolve, reject) => {
-        const fileSizeKB = file.size / 1024;
-        console.log(`Original image size: ${fileSizeKB.toFixed(2)} KB`);
-
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-            const originalDataUrl = e.target.result;
-
-            // 300KB 이하이고 PNG가 아니거나, PNG여도 300KB 이하이면 원본 사용
-            if (fileSizeKB <= maxSizeKB) {
-                 console.log("Image is small enough or not PNG, using original.");
-                 resolve(originalDataUrl); // 원본 Data URL 반환
-                 return;
-            }
-
-             // 300KB 초과 시 리사이징 및 JPEG 변환
-            console.log("Image size exceeds limit, resizing and converting to JPEG...");
-            const img = new Image();
-            img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                const ratio = Math.min(maxWidth / width, maxHeight / height);
-
-                width = Math.round(width * ratio);
-                height = Math.round(height * ratio);
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // JPEG로 변환 및 압축
-                const resizedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                const resizedSizeKB = resizedDataUrl.length * 0.75 / 1024; // Estimate base64 size
-                console.log(`Resized image size (JPEG, quality ${quality}): ~${resizedSizeKB.toFixed(2)} KB`);
-                resolve(resizedDataUrl);
-            };
-            img.onerror = (error) => {
-                console.error("Image loading error for resizing:", error);
-                reject(new Error("이미지 로딩 중 오류 발생"));
-            };
-            img.src = originalDataUrl; // 원본 Data URL 사용
-        };
-        reader.onerror = (error) => {
-            console.error("FileReader error:", error);
-            reject(new Error("파일 읽기 오류"));
-        };
-        reader.readAsDataURL(file); // 여기서 파일을 읽기 시작
-    });
-}
-
 // --- 캐릭터 목록 관리 ---
 export function renderSavedCharactersList() {
   const characters = getCharacters();
@@ -158,94 +103,110 @@ export function loadCharacterByIndex(index) {
 
 // --- 캐릭터 저장 ---
 export function handleSaveCharacter() {
- console.log("Attempting to save character...");
-
-// 폼 값 가져오기
-const name = DOMElements.characterNameInput?.value?.trim() || '';
-let setting = '';
-if (DOMElements.characterSettingInput) {
-  setting = DOMElements.characterSettingInput.value.trim();
-}
-const fileInput = DOMElements.characterImgInput;
-
-// 입력값 검증
-if (name === '') {
-  showNotification('캐릭터 이름을 입력해주세요.', 3000);
-  console.log("Save failed: Name missing.");
-  return;
-}
-if (DOMElements.characterSettingInput && setting === '' && DOMElements.characterSettingInput.required) {
-  showNotification('캐릭터 설정을 입력해주세요.', 3000);
-  console.log("Save failed: Setting missing.");
-  return;
-}
-if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-  showNotification('캐릭터 이미지를 선택해주세요.', 3000);
-  console.log("Save failed: Image missing.");
-  return;
-}
-
-const file = fileInput.files[0];
-
-// 이미지 처리 (비동기)
-processImageFile(file)
-  .then(imageDataUrl => {
-    console.log("Image processed successfully.");
-
-    // 캐릭터 객체 생성
-    const newCharacter = {
-      name: name,
-      image: imageDataUrl, // 처리된 이미지 데이터 사용
-      profileImage: imageDataUrl, // 처리된 이미지 데이터 사용
-      type: DOMElements.characterTypeExisting?.checked ? 'existing' : 'original',
-      setting: setting || '',
-      userNickname: DOMElements.characterUserNicknameInput?.value?.trim() || '',
-      genre: DOMElements.characterGenreInput?.value?.trim() || '',
-      tone: DOMElements.characterToneInput?.value?.trim() || '',
-      lore: DOMElements.characterLoreInput?.value?.trim() || '',
-      personality: DOMElements.characterPersonalityInput?.value?.trim() || '',
-      customDialog: '',
-      customGift: ''
-    };
-
-    console.log("New character data created:", newCharacter);
-
-    // 저장 시도 및 오류 처리
+  console.log("Attempting to save character...");
+  
+  // 폼 값 가져오기
+  const name = DOMElements.characterNameInput?.value?.trim() || '';
+  
+  // setting 필드가 있는지 확인 (필수적이지 않도록 변경)
+  let setting = '';
+  if (DOMElements.characterSettingInput) {
+    setting = DOMElements.characterSettingInput.value.trim();
+  }
+  
+  const fileInput = DOMElements.characterImgInput;
+  
+  // 입력값 검증
+  if (name === '') {
+    showNotification('캐릭터 이름을 입력해주세요.', 3000);
+    console.log("Save failed: Name missing.");
+    return;
+  }
+  
+  // setting 필드가 있을 경우에만 검증
+  if (DOMElements.characterSettingInput && setting === '' && DOMElements.characterSettingInput.required) {
+    showNotification('캐릭터 설정을 입력해주세요.', 3000);
+    console.log("Save failed: Setting missing.");
+    return;
+  }
+  
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    showNotification('캐릭터 이미지를 선택해주세요.', 3000);
+    console.log("Save failed: Image missing.");
+    return;
+  }
+  
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  
+  reader.onerror = function(error) {
+    showNotification('이미지 파일을 읽는 중 오류가 발생했습니다.', 3000);
+    console.error("FileReader Error:", error);
+  };
+  
+  reader.onload = function(e) {
+    console.log("FileReader onload triggered.");
+    
     try {
-      addCharacter(newCharacter); // 상태에 추가 (여기서 saveStateToLocalStorage 호출됨)
-      console.log("Character added to state and potentially saved.");
-
-      // 성공 시 UI 업데이트
+      // 캐릭터 객체 생성
+      const newCharacter = {
+        name: name,
+        image: e.target.result,
+        profileImage: e.target.result,
+        type: DOMElements.characterTypeExisting?.checked ? 'existing' : 'original',
+        setting: setting || '', // setting이 없어도 빈 문자열로 처리
+        // 사용자 호칭
+        userNickname: DOMElements.characterUserNicknameInput?.value?.trim() || '',
+        // 상세 필드
+        genre: DOMElements.characterGenreInput?.value?.trim() || '',
+        tone: DOMElements.characterToneInput?.value?.trim() || '',
+        lore: DOMElements.characterLoreInput?.value?.trim() || '',
+        personality: DOMElements.characterPersonalityInput?.value?.trim() || '',
+        customDialog: '',
+        customGift: ''
+      };
+      
+      console.log("New character data created:", newCharacter);
+      
+      // 캐릭터를 상태에 추가
+      addCharacter(newCharacter);
+      console.log("Character added to state.");
+      saveStateToLocalStorage();
+      
+      // UI 업데이트
       renderSavedCharactersList();
       console.log("Saved characters list rendered.");
+      
+      // 현재 캐릭터로 설정
       setCurrentCharacter(newCharacter);
       console.log("Current character set.");
+      
+      // 메인 뷰 업데이트
       displayCurrentCharacterUI();
       console.log("Main character UI displayed.");
+      
+      // 폼 초기화 및 피드백
       resetCharacterForm();
       showNotification(`${name} 캐릭터가 저장되었습니다!`, 3000);
       closeModal(DOMElements.characterModal);
+      
+      // 새 캐릭터 인사말 생성
       generateGreeting();
-
+      
     } catch (error) {
-      console.error("Error during character saving (likely storage full):", error);
-      // QuotaExceededError 확인 (브라우저마다 에러 이름/코드가 다를 수 있음)
-      if (error.name === 'QuotaExceededError' || error.code === 22 || error.message.toLowerCase().includes('quota')) {
-         showNotification('저장 공간이 부족합니다. 기존 캐릭터를 삭제하거나 이미지를 더 압축해야 할 수 있습니다. 새로고침 후 다시 시도해주세요.', 5000);
-         // 실패 시 추가된 캐릭터를 다시 제거 (선택적)
-         // const chars = getCharacters();
-         // const lastCharIndex = chars.findIndex(c => c.name === newCharacter.name && c.image === newCharacter.image);
-         // if (lastCharIndex > -1) removeCharacterFromList(lastCharIndex);
-      } else {
-         showNotification("캐릭터 저장 중 오류가 발생했습니다.", 3000);
-      }
+      console.error("Error during character saving process:", error);
+      showNotification("캐릭터 저장 중 오류가 발생했습니다.", 3000);
     }
-  })
-  .catch(error => {
-    console.error("Error processing image:", error);
-    showNotification(`이미지 처리 중 오류 발생: ${error.message}`, 3000);
-  });
-
+  };
+  
+  // 파일 읽기 시작
+  try {
+    reader.readAsDataURL(file);
+    console.log("FileReader readAsDataURL called.");
+  } catch (error) {
+    console.error("Error reading file:", error);
+    showNotification("파일 읽기 오류가 발생했습니다.", 3000);
+  }
 }
 
 function resetCharacterForm() {
@@ -382,54 +343,25 @@ const updatedCharacterData = {
   
   // 새 이미지 파일 선택 여부 확인
   const fileInput = DOMElements.editCharacterImgInput;
-
-// 이미지 처리 로직 분기
-const processAndUpdate = (imageDataUrl) => {
-  updatedCharacterData.image = imageDataUrl;
-  // 프로필 이미지도 함께 업데이트할지 결정 (여기서는 함께 업데이트)
-  if (!updatedCharacterData.profileImage || updatedCharacterData.profileImage === originalCharacter.image) {
-      updatedCharacterData.profileImage = imageDataUrl;
-  }
-
-  try {
-    finalizeCharacterUpdate(index, updatedCharacterData); // 여기서 저장 시도
-  } catch (error) {
-    console.error("Error during character update (likely storage full):", error);
-    if (error.name === 'QuotaExceededError' || error.code === 22 || error.message.toLowerCase().includes('quota')) {
-      showNotification('저장 공간 부족으로 캐릭터 업데이트에 실패했습니다. 기존 캐릭터를 삭제하거나 이미지를 더 압축해야 할 수 있습니다.', 5000);
-      // 롤백은 복잡하므로 여기서는 알림만 표시
-    } else {
-      showNotification("캐릭터 업데이트 중 오류가 발생했습니다.", 3000);
-    }
-  }
-  if (fileInput) fileInput.value = ''; // 입력 필드 초기화
-};
-
-// 새 이미지가 있는 경우 처리
-if (fileInput && fileInput.files && fileInput.files.length > 0) {
-  const file = fileInput.files[0];
-  processImageFile(file)
-    .then(imageDataUrl => {
-      processAndUpdate(imageDataUrl); // 처리된 이미지로 업데이트
-    })
-    .catch(error => {
-      console.error("Error processing new image for update:", error);
-      showNotification(`새 이미지 처리 중 오류 발생: ${error.message}`, 3000);
-    });
-} else {
-  // 이미지 변경 없이 업데이트 (오류 처리 포함)
-  try {
+  if (fileInput && fileInput.files && fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+      updatedCharacterData.image = e.target.result;
+      finalizeCharacterUpdate(index, updatedCharacterData);
+      if (fileInput) fileInput.value = '';
+    };
+    
+    reader.onerror = function() {
+      showNotification('새 이미지를 읽는 중 오류가 발생했습니다.', 3000);
+    };
+    
+    reader.readAsDataURL(file);
+  } else {
+    // 이미지 변경 없이 업데이트
     finalizeCharacterUpdate(index, updatedCharacterData);
-  } catch (error) {
-      console.error("Error during character update (without image change):", error);
-      if (error.name === 'QuotaExceededError' || error.code === 22 || error.message.toLowerCase().includes('quota')) {
-        showNotification('저장 공간 부족으로 캐릭터 업데이트에 실패했습니다. 기존 캐릭터를 삭제하거나 이미지를 더 압축해야 할 수 있습니다.', 5000);
-      } else {
-        showNotification("캐릭터 업데이트 중 오류가 발생했습니다.", 3000);
-      }
   }
-}
-  
 }
 
 function finalizeCharacterUpdate(index, updatedCharacter) {
@@ -538,41 +470,39 @@ export function handleProfileImageUpload() {
   }
   
   const file = fileInput.files[0];
-
-processImageFile(file) // 프로필 이미지도 동일하게 처리
-  .then(newProfileImage => {
-      // 메인 목록에서 캐릭터 찾아서 업데이트
-      const characters = getCharacters();
-      const index = characters.findIndex(char => char.name === currentCharacter.name);
-      if (index !== -1) {
-          const updatedCharacter = { ...characters[index], profileImage: newProfileImage };
-
-          try {
-              updateCharacterInList(index, updatedCharacter); // 여기서 저장 시도
-              setCurrentCharacter(updatedCharacter); // 현재 캐릭터 상태도 업데이트
-
-              // UI 즉시 업데이트
-              if (DOMElements.profileImage) DOMElements.profileImage.src = newProfileImage;
-              if (DOMElements.profilePreviewImg) DOMElements.profilePreviewImg.src = newProfileImage;
-
-              showNotification('프로필 이미지가 업데이트되었습니다.', 3000);
-          } catch (error) {
-              console.error("Error updating profile image (likely storage full):", error);
-              if (error.name === 'QuotaExceededError' || error.code === 22 || error.message.toLowerCase().includes('quota')) {
-                  showNotification('저장 공간 부족으로 프로필 이미지 업데이트에 실패했습니다.', 5000);
-              } else {
-                  showNotification("프로필 이미지 업데이트 중 오류가 발생했습니다.", 3000);
-              }
-          }
-      } else {
-           showNotification('현재 캐릭터를 찾을 수 없습니다.', 3000);
-      }
-       if (fileInput) fileInput.value = ''; // 입력 필드 초기화
-  })
-  .catch(error => {
-      console.error("Error processing profile image:", error);
-      showNotification(`프로필 이미지 처리 중 오류 발생: ${error.message}`, 3000);
-  });
+  const reader = new FileReader();
+  
+  reader.onload = function(e) {
+    const newProfileImage = e.target.result;
+    
+    // 메인 목록에서 캐릭터 찾아서 업데이트
+    const characters = getCharacters();
+    const index = characters.findIndex(char => char.name === currentCharacter.name);
+    if (index !== -1) {
+      const updatedCharacter = { ...characters[index], profileImage: newProfileImage };
+      updateCharacterInList(index, updatedCharacter);
+      
+      // 현재 캐릭터 상태도 업데이트
+      setCurrentCharacter(updatedCharacter);
+      
+      // UI 즉시 업데이트
+      if (DOMElements.profileImage)
+        DOMElements.profileImage.src = newProfileImage;
+      
+      if (DOMElements.profilePreviewImg)
+        DOMElements.profilePreviewImg.src = newProfileImage;
+      
+      showNotification('프로필 이미지가 업데이트되었습니다.', 3000);
+    }
+    
+    if (fileInput) fileInput.value = '';
+  };
+  
+  reader.onerror = function() {
+    showNotification('프로필 이미지를 읽는 중 오류가 발생했습니다.', 3000);
+  };
+  
+  reader.readAsDataURL(file);
 }
 
 // --- 설정 저장 ---
@@ -584,11 +514,8 @@ export function handleSaveSettings() {
   }
   
   const customDialog = DOMElements.customDialogInput?.value?.trim() || '';
-  const customGift = DOMElements.customGiftListInput?.value?.trim() || '';
-
-  console.log(`Saving settings for ${currentCharacter.name}:`);
-  console.log(`  Custom Dialog: ${customDialog}`);
-  console.log(`  Custom Gift: ${customGift}`); // 저장될 선물 목록 값 확인
+  const customGift = DOMElements.customGiftListInput?.value?.trim() || 
+                    DOMElements.customGiftList?.value?.trim() || '';
   
   // 메인 목록에서 캐릭터 찾아서 업데이트
   const characters = getCharacters();
@@ -596,10 +523,6 @@ export function handleSaveSettings() {
   if (index !== -1) {
     const updatedCharacter = { ...characters[index], customDialog, customGift };
     updateCharacterInList(index, updatedCharacter);
-
-     console.log(`Updating character at index ${index} with:`, updatedCharacter);
-    
-updateCharacterInList(index, updatedCharacter);
     
     // 현재 캐릭터 상태 업데이트
     setCurrentCharacter(updatedCharacter);
