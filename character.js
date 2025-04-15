@@ -9,7 +9,9 @@ import {
   updateCharacterInList,
   removeCharacterFromList,
   incrementDaysCount,
-  saveStateToLocalStorage
+  saveStateToLocalStorage,
+  getCharacterGifts,
+  setCharacterGifts
 } from './state.js';
 import { generateGreeting } from './api.js';
 
@@ -151,6 +153,18 @@ export function loadCharacterByIndex(index) {
     displayCurrentCharacterUI();
     generateGreeting();
     console.log(`Character '${characterToLoad.name}' loaded.`);
+    
+    // Load character's gift list
+    const characterGifts = getCharacterGifts(characterToLoad.name);
+    if (characterGifts && characterGifts.length > 0) {
+      renderFavoriteGifts(characterGifts);
+    } else if (characterToLoad.customGift) {
+      const gifts = characterToLoad.customGift.split('/').map(g => g.trim()).filter(g => g !== '');
+      if (gifts.length > 0) {
+        setCharacterGifts(characterToLoad.name, gifts);
+        renderFavoriteGifts(gifts);
+      }
+    }
   } else {
     console.error(`Invalid character index: ${index}`);
   }
@@ -195,8 +209,8 @@ processImageFile(file)
     // 캐릭터 객체 생성
     const newCharacter = {
       name: name,
-      image: imageDataUrl, // 처리된 이미지 데이터 사용
-      profileImage: imageDataUrl, // 처리된 이미지 데이터 사용
+      image: imageDataUrl,
+      profileImage: imageDataUrl,
       type: DOMElements.characterTypeExisting?.checked ? 'existing' : 'original',
       setting: setting || '',
       userNickname: DOMElements.characterUserNicknameInput?.value?.trim() || '',
@@ -205,7 +219,7 @@ processImageFile(file)
       lore: DOMElements.characterLoreInput?.value?.trim() || '',
       personality: DOMElements.characterPersonalityInput?.value?.trim() || '',
       customDialog: '',
-      customGift: ''
+      customGift: DOMElements.customGiftInput?.value?.trim() || ''
     };
 
     console.log("New character data created:", newCharacter);
@@ -584,11 +598,8 @@ export function handleSaveSettings() {
   }
   
   const customDialog = DOMElements.customDialogInput?.value?.trim() || '';
-  const customGift = DOMElements.customGiftListInput?.value?.trim() || '';
-
-  console.log(`Saving settings for ${currentCharacter.name}:`);
-  console.log(`  Custom Dialog: ${customDialog}`);
-  console.log(`  Custom Gift: ${customGift}`); // 저장될 선물 목록 값 확인
+  const customGift = DOMElements.customGiftListInput?.value?.trim() || 
+                    DOMElements.customGiftList?.value?.trim() || '';
   
   // 메인 목록에서 캐릭터 찾아서 업데이트
   const characters = getCharacters();
@@ -596,10 +607,6 @@ export function handleSaveSettings() {
   if (index !== -1) {
     const updatedCharacter = { ...characters[index], customDialog, customGift };
     updateCharacterInList(index, updatedCharacter);
-
-     console.log(`Updating character at index ${index} with:`, updatedCharacter);
-    
-updateCharacterInList(index, updatedCharacter);
     
     // 현재 캐릭터 상태 업데이트
     setCurrentCharacter(updatedCharacter);
