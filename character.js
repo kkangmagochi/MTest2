@@ -592,29 +592,35 @@ processImageFile(file) // 프로필 이미지도 동일하게 처리
 // --- 설정 저장 ---
 export function handleSaveSettings() {
   const currentCharacter = getCurrentCharacter();
-  if (!currentCharacter) return;
-
-  const customDialog = DOMElements.customDialogInput?.value?.trim() || '';
-  const customGift = DOMElements.customGiftInput?.value?.trim() || '';
-
-  // 맞춤 대화를 슬래시로 구분하여 저장
-  const dialogs = customDialog.split('/').map(d => d.trim()).filter(d => d !== '');
+  if (!currentCharacter) {
+    showNotification('설정을 저장할 캐릭터를 선택해주세요.', 3000);
+    return;
+  }
   
-  // 맞춤 선물을 슬래시로 구분하여 저장
-  const gifts = customGift.split('/').map(g => g.trim()).filter(g => g !== '');
-
-  const updatedCharacter = {
-      ...currentCharacter,
-      customDialog: dialogs.join('/'),
-      customGift: gifts.join('/')
-  };
-
+  const customDialog = DOMElements.customDialogInput?.value?.trim() || '';
+  const customGift = DOMElements.customGiftListInput?.value?.trim() || 
+                    DOMElements.customGiftList?.value?.trim() || '';
+  
+  // 메인 목록에서 캐릭터 찾아서 업데이트
   const characters = getCharacters();
-  const index = characters.findIndex(c => c.name === currentCharacter.name);
+  const index = characters.findIndex(char => char.name === currentCharacter.name);
   if (index !== -1) {
-      updateCharacterInList(index, updatedCharacter);
-      setCurrentCharacter(updatedCharacter);
-      setCharacterGifts(updatedCharacter.name, gifts);
-      showNotification('설정이 저장되었습니다!', 3000);
+    const updatedCharacter = { ...characters[index], customDialog, customGift };
+    updateCharacterInList(index, updatedCharacter);
+    
+    // 현재 캐릭터 상태 업데이트
+    setCurrentCharacter(updatedCharacter);
+    renderFavoriteGifts();
+saveStateToLocalStorage();
+    
+    closeModal(DOMElements.settingsModal);
+    showNotification('설정이 저장되었습니다.', 3000);
+    
+    // 말풍선 확인 메시지 표시
+    if (typeof showSpeechBubble === 'function') {
+      showSpeechBubble('설정이 저장되었어요!');
+    }
+  } else {
+    showNotification('현재 캐릭터를 찾을 수 없습니다.', 3000);
   }
 }
