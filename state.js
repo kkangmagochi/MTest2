@@ -10,6 +10,7 @@ let _daysCount = 0;
 let _characterStats = {}; // Character-specific stats
 let _dialogLogs = [];
 let _selectedModel = 'gemini-2.0-flash'; // Default model
+let _characterGifts = {}; // Character-specific gift lists
 
 const MAX_DIALOG_LOGS = 10;
 
@@ -24,6 +25,9 @@ export function getCharacterStats(characterName) { return _characterStats[charac
 export function getAllCharacterStats() { return { ..._characterStats }; }
 export function getDialogLogs() { return [..._dialogLogs]; } // Return a copy
 export function getSelectedModel() { return _selectedModel; }
+export function getCharacterGifts(characterName) {
+    return _characterGifts[characterName] || [];
+}
 
 // --- Setters/Updaters ---
 export function setStats(newStats) {
@@ -146,6 +150,11 @@ export function setSelectedModel(modelName) {
     localStorage.setItem('selectedModel', _selectedModel); // Save model selection separately
 }
 
+export function setCharacterGifts(characterName, gifts) {
+    _characterGifts[characterName] = gifts;
+    saveStateToLocalStorage();
+}
+
 // --- Local Storage ---
 const STORAGE_KEYS = {
     CHARACTERS: 'virtualPetCharacters',
@@ -202,6 +211,9 @@ export function loadStateFromLocalStorage() {
     const savedModel = localStorage.getItem('selectedModel');
     if (savedModel) _selectedModel = savedModel;
 
+    const savedCharacterGifts = localStorage.getItem('virtualPetCharacterGifts');
+    if (savedCharacterGifts) _characterGifts = JSON.parse(savedCharacterGifts);
+
     console.log("State loaded from local storage.");
 }
 
@@ -218,5 +230,6 @@ export function saveStateToLocalStorage() {
         localStorage.removeItem(STORAGE_KEYS.CURRENT_CHARACTER);
     }
     // API Key and Model are saved in their setters
+    localStorage.setItem('virtualPetCharacterGifts', JSON.stringify(_characterGifts));
     console.log("State saved to local storage.");
 }
