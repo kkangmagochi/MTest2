@@ -1,6 +1,6 @@
 // actions.js - Handles user interactions (feeding, playing, etc.)
 import { DOMElements, animateCharacter, showSpeechBubble, updateStatsDisplay, playNightAnimation, showNotification } from './ui.js';
-import { getStats, getCurrentCharacter, updateStat, setStats, getCharacterStats, saveStateToLocalStorage } from './state.js';
+import { getStats, getCurrentCharacter, updateStat, setStats, getCharacterStats, saveStateToLocalStorage, getCharacterGifts, setCharacterGifts } from './state.js';
 import { generateAIResponse } from './api.js';
 import { addLogEntry } from './dialogLogs.js'; // Use renamed function
 
@@ -83,14 +83,22 @@ async function handlePlay() {
 
 function getGiftList() {
     const character = getCurrentCharacter();
-    let gifts = defaultGifts;
-    if (character && character.customGift && character.customGift.trim() !== '') {
-        const customGifts = character.customGift.split(',').map(g => g.trim()).filter(g => g !== '');
+    if (!character) return defaultGifts;
+    
+    const characterGifts = getCharacterGifts(character.name);
+    if (characterGifts && characterGifts.length > 0) {
+        return characterGifts;
+    }
+    
+    if (character.customGift && character.customGift.trim() !== '') {
+        const customGifts = character.customGift.split('/').map(g => g.trim()).filter(g => g !== '');
         if (customGifts.length > 0) {
-            gifts = customGifts;
+            setCharacterGifts(character.name, customGifts);
+            return customGifts;
         }
     }
-    return gifts;
+    
+    return defaultGifts;
 }
 
 
@@ -201,13 +209,20 @@ async function handleCustomGift() {
         return;
     }
 
+    // Add the new gift to the character's gift list
+    const currentGifts = getCharacterGifts(currentCharacter.name);
+    if (!currentGifts.includes(customGiftName)) {
+        const updatedGifts = [...currentGifts, customGiftName];
+        setCharacterGifts(currentCharacter.name, updatedGifts);
+    }
+
     console.log(`Custom gift action: ${customGiftName}`);
-    updateStat('affection', 15); // Slightly less than random gift?
+    updateStat('affection', 15);
     updateStat('happiness', 10);
     updateStatsDisplay();
     animateCharacter();
 
-    let response = `${customGiftName}! 정말 고마워요!`; // Default positive
+    let response = `${customGiftName}! 정말 고마워요!`;
 
     try {
         const giftContext = `사용자로부터 '${customGiftName}' 선물을 받았습니다.`;
@@ -221,7 +236,7 @@ async function handleCustomGift() {
 
     showSpeechBubble(response);
     addLogEntry(response, `선물주기 (${customGiftName})`);
-    DOMElements.customGiftInput.value = ''; // Clear input after giving
+    DOMElements.customGiftInput.value = '';
 }
 
 function handleStatsReset() {
