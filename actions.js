@@ -273,6 +273,27 @@ async function handleCharacterClick() {
     addLogEntry(response, "클릭");
 }
 
+async function handleCustomDialogGeneration() {
+    const currentCharacter = getCurrentCharacter();
+    if (!currentCharacter) return;
+
+    try {
+        const aiResponse = await generateAIResponse("custom_dialog");
+        if (aiResponse) {
+            // AI 응답을 슬래시로 구분된 형식으로 변환
+            const formattedResponse = aiResponse.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0)
+                .join('/');
+            
+            DOMElements.customDialogInput.value = formattedResponse;
+            showNotification('맞춤 대화가 생성되었습니다!', 3000);
+        }
+    } catch (error) {
+        console.error("Custom dialog generation error:", error);
+        showNotification('대화 생성 중 오류가 발생했습니다.', 3000);
+    }
+}
 
 // --- Initialization ---
 
@@ -284,6 +305,9 @@ export function initActions() {
     DOMElements.giveGiftBtn.addEventListener('click', handleCustomGift);
     DOMElements.statsResetBtn.addEventListener('click', handleStatsReset);
     DOMElements.characterImage.addEventListener('click', handleCharacterClick);
+    if (DOMElements.generateDialogBtn) {
+        DOMElements.generateDialogBtn.addEventListener('click', handleCustomDialogGeneration);
+    }
 
     console.log("Action handlers initialized.");
 }
